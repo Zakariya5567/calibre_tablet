@@ -102,7 +102,7 @@ class DropboxService {
       // Get the application's document directory to store files locally
       final dir = await getApplicationDocumentsDirectory();
 
-      // int downloadedBooksCount = 0; // Track the number of books downloaded
+      //int downloadedBooksCount = 0; // Track the number of books downloaded
 
       // Iterate through each author folder
       for (var authorFolder in authorFolders) {

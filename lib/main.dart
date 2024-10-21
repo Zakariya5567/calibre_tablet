@@ -3,11 +3,13 @@ import 'package:calibre_tablet/view/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'helper/permission_helper.dart';
 import 'helper/scroll_behaviour.dart';
 
 GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // requestManageExternalStoragePermission();
   return runApp(MyApp());
 }
 
