@@ -69,67 +69,138 @@ class HomeController extends GetxController {
   Future<void> getServices() async {
     final hasInternet = await checkInternet();
     if (!hasInternet) return;
+
     setLoading(true);
     bool? isAuthorized = await SharedPref.getUserAuthorization;
+
     try {
-      bool? initialize = await dropboxService.initDropbox();
-      if (initialize == true) {
-        ///Check before submit
-        ///isAuthorized != true
-        if (isAuthorized != true) {
-          final status = await dropboxService.authorize();
-          if (status == true) {
-            SharedPref.storeUserAuthorization(true);
-            //This statement is not working fine will check the issue in the plugin used
-            String? token = await dropboxService.getAccessToken();
-            await SharedPref.storeAccessToken(token);
-            await authenticateWithAccessTokenAndSync();
-          }
-        } else {
-          await authenticateWithAccessTokenAndSync();
+      if (await dropboxService.initDropbox() != true) {
+        setLoading(false);
+        return;
+      }
+
+      if (isAuthorized != true) {
+        if (await dropboxService.authorize() == true) {
+          await handleAuthorizationAndSync();
         }
-        setLoading(false);
       } else {
-        setLoading(false);
+        await authenticateWithAccessTokenAndSync();
       }
     } catch (e) {
+      handleError(e);
+    } finally {
       setLoading(false);
-      SharedPref.storeUserAuthorization(false);
-      showToast(
-          message: "Something Went Wrong. Please try again later",
-          isError: true);
+    }
+  }
+
+  Future<void> handleAuthorizationAndSync() async {
+    try {
+      String? token = await dropboxService.getAccessToken();
+      if (token != null) {
+        print("Access Token : $token");
+        await SharedPref.storeAccessToken(token);
+        await authenticateWithAccessTokenAndSync();
+      } else {
+        throw Exception("Failed to retrieve access token");
+      }
+    } catch (e) {
+      handleError(e);
+    }
+  }
+
+  Future<void> handleAuthorizationAndUpdate(FileModel file) async {
+    try {
+      String? token = await dropboxService.getAccessToken();
+      if (token != null) {
+        print("Access Token : $token");
+        await SharedPref.storeAccessToken(token);
+        await authenticateWithAccessTokenAndUpdate(file);
+      } else {
+        throw Exception("Failed to retrieve access token");
+      }
+    } catch (e) {
+      handleError(e);
     }
   }
 
   Future<void> authenticateWithAccessTokenAndSync() async {
     String? token = await SharedPref.getAccessToken;
-    //'sl.B--k1uplvyrTtu4bdd6yLe9or5KCqeZ38U12HDuCrkWnnlrsqvw6_Crzcy1qHuyGyHojAnwW8sxUBW59bRHFYTWghtkTBuJVlGgDPYcH470UPhJlZDE4_Tps6_5V-JnxKC0qnk4ti5rbEd_fhr4sAqA';
+
+    if (token == null) {
+      showAuthorizationError();
+      return;
+    }
+
     try {
-      if (token != null) {
-        final authorizedWithToken =
-            await dropboxService.authorizeWithAccessToken(token);
-        if (authorizedWithToken == true) {
-          SharedPref.storeUserAuthorization(true);
-          await dropboxService.syncDropboxFiles();
+      if (await dropboxService.authorizeWithAccessToken(token) == true) {
+        SharedPref.storeUserAuthorization(true);
+
+        if (await dropboxService.syncDropboxFiles() == true) {
           await fetchAllFiles();
         } else {
-          SharedPref.storeUserAuthorization(false);
-          showToast(
-              message: "Authorization Error : Please Authorized with Dropbox",
-              isError: true);
+          showSyncError();
         }
       } else {
-        SharedPref.storeUserAuthorization(false);
-        showToast(
-            message: "Authorization Error : Please Authorized with Dropbox",
-            isError: true);
+        showAuthorizationError();
       }
     } catch (e) {
-      SharedPref.storeUserAuthorization(false);
-      showToast(
-          message: "$e Authorization Error : Please Authorized with Dropbox",
-          isError: true);
+      handleError(e);
     }
+  }
+
+  Future<void> authenticateWithAccessTokenAndUpdate(FileModel file) async {
+    String? token = await SharedPref.getAccessToken;
+
+    if (token == null) {
+      showAuthorizationError();
+      return;
+    }
+
+    try {
+      if (await dropboxService.authorizeWithAccessToken(token) == true) {
+        SharedPref.storeUserAuthorization(true);
+        String opfPath = file.fileMetaPath!;
+
+        int startIndex =
+            opfPath.indexOf('/app_flutter/') + '/app_flutter/'.length;
+        // Extract the part from that index to the end
+        String dropboxOpfPath = "/${opfPath.substring(startIndex)}";
+
+        await dropboxService.updateReadStatusAndUpload(
+            opfPath, dropboxOpfPath, true);
+        await databaseHelper.markBookAsRead(
+            file.id!); // Call the function to mark the book as read
+        await fetchAllFiles();
+      } else {
+        showAuthorizationError();
+      }
+    } catch (e) {
+      handleError(e);
+    }
+  }
+
+  void handleError(e) {
+    SharedPref.storeUserAuthorization(false);
+    showToast(
+      message: "Something Went Wrong: $e. Please try again later",
+      isError: true,
+    );
+  }
+
+  void showAuthorizationError() {
+    SharedPref.storeUserAuthorization(false);
+    showToast(
+      message: "Authorization Error: Please authorize with Dropbox",
+      isError: true,
+    );
+  }
+
+  void showSyncError() {
+    SharedPref.storeUserAuthorization(false);
+    showToast(
+      message: "Error syncing with Dropbox",
+      isError: true,
+    );
   }
 
   List<FileModel> files = [];
@@ -160,109 +231,24 @@ class HomeController extends GetxController {
   }
 
   void markBookAsReadAndSync(FileModel file) async {
-    bool isInternet = await checkInternet();
-    if (!isInternet) return;
+    final hasInternet = await checkInternet(isDisplayMessage: false);
+    if (!hasInternet) return;
 
-    bool isRead = true; // or false if you're marking it as unread
-    String isReadLocally = '1';
-    //   await dropboxService.updateReadStatusAndUpload(file.fileMetaPath!, dropboxOpfPath, true);
-    await databaseHelper
-        .markBookAsRead(file.id!); // Call the function to mark the book as read
-    print('Book marked as read in the database.');
-    await fetchAllFiles();
-    print('Read status updated and synced with Dropbox.');
-  }
-
-  void onBookRead(int bookId) async {
-    await databaseHelper
-        .markBookAsRead(bookId); // Call the function to mark the book as read
-    print('Book marked as read in the database.');
-    fetchAllFiles();
-  }
-
-  Future<String?> extractAndStoreMetadataFromOFP(
-      String coverPath, String epubPath, String opfPath) async {
+    bool? isAuthorized = await SharedPref.getUserAuthorization;
     try {
-      final file = File(opfPath);
-      if (await file.exists()) {
-        // Read the OPF file content
-        String opfContent = await file.readAsString();
-        print("Metadata content: $opfContent");
+      if (await dropboxService.initDropbox() != true) {
+        return;
+      }
 
-        // Parse the OPF content as XML
-        final document = XmlDocument.parse(opfContent);
-
-        // Extract title
-        final titleElements = document.findAllElements('dc:title');
-        final title =
-            titleElements.isNotEmpty ? titleElements.first.text : 'Untitled';
-
-        // Extract all authors and concatenate them
-        final authorElements = document.findAllElements('dc:creator');
-        final author = authorElements.isNotEmpty
-            ? authorElements.map((e) => e.text).toList().join(', ')
-            : 'Unknown Author';
-
-        // Extract description
-        final descriptionElements = document.findAllElements('dc:description');
-        String description = descriptionElements.isNotEmpty
-            ? descriptionElements.first.text
-            : 'No description available';
-
-        // Clean up the description by removing any HTML tags
-        description = description.replaceAll(RegExp(r'<[^>]*>'), '');
-
-        // Extract published date
-        final publishedDateString =
-            document.findAllElements('dc:date').single.text;
-        DateTime publishedDateTime = DateTime.parse(publishedDateString);
-        String publishedDate =
-            DateFormat("MMM d, yyyy").format(publishedDateTime);
-
-        // Extract readStatus from <meta> element
-        final readStatusMeta = document.findAllElements('meta').where((meta) {
-          return meta.getAttribute('name') ==
-              'calibre:user_metadata:#read_status';
-        }).firstOrNull; // Safely handle if not found
-
-        final readStatus = readStatusMeta != null
-            ? (readStatusMeta.getAttribute('content') == 'true'
-                ? 'Read'
-                : 'Unread')
-            : 'Unknown';
-
-        // Extract pages from <meta> element
-        final pagesMeta = document.findAllElements('meta').where((meta) {
-          return meta.getAttribute('name') == 'calibre:user_metadata:#pages';
-        }).firstOrNull; // Safely handle if not found
-
-        final pages = pagesMeta != null
-            ? int.tryParse(pagesMeta.getAttribute('content') ?? '0') ?? 0
-            : 0;
-
-        // Use current timestamp as the download date
-        String downloadDate = DateFormat("MMM d, yyyy").format(DateTime.now());
-
-        // Store the metadata and cover image path in the database
-        // await db.saveFileToDatabase(
-        //   title: title.isEmpty ? 'Unknown Title' : title,
-        //   author: author.isEmpty ? 'Unknown Author' : author,
-        //   description: description.isEmpty ? 'No description available' : description,
-        //   publishedDate: publishedDate.isEmpty ? 'Unknown' : publishedDate,
-        //   readStatus: readStatus,
-        //   downloadDate: downloadDate,
-        //   filePath: epubPath,
-        //   fileMetaPath: opfPath,
-        //   totalPages: pages,
-        //   coverImagePath: coverPath,
-        // );
-
-        print("Metadata extraction and database save successful.");
+      if (isAuthorized != true) {
+        if (await dropboxService.authorize() == true) {
+          await handleAuthorizationAndUpdate(file);
+        }
       } else {
-        print("OPF file not found at: $opfPath");
+        await authenticateWithAccessTokenAndUpdate(file);
       }
     } catch (e) {
-      print('Error extracting metadata from OPF: $e');
+      handleError(e);
     }
   }
 }

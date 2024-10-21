@@ -2,17 +2,19 @@ import 'dart:io';
 import 'package:calibre_tablet/controller/home_controller.dart';
 import 'package:calibre_tablet/models/file_model.dart';
 import 'package:calibre_tablet/utils/constant.dart';
+import 'package:calibre_tablet/view/screens/book_grid_view.dart';
 import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
+import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
 import 'package:epub_view/epub_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart';
 import '../../utils/colors.dart';
 import '../../utils/icons.dart';
 import '../../utils/style.dart';
 import '../widgets/no_data_found.dart';
+import 'package:open_filex/open_filex.dart';
 
 class BookDetailScreen extends StatefulWidget {
   const BookDetailScreen({
@@ -44,7 +46,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       isLoading = false;
     });
     if (widget.file.readStatus == "0") {
-      homeController.onBookRead(widget.file.id!);
+      homeController.markBookAsReadAndSync(widget.file);
+      //homeController.onBookRead(widget.file.id!);
     }
   }
 
@@ -126,6 +129,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                               chapterDividerBuilder: (_) => const Divider(),
                             ),
                             controller: _epubReaderController!,
+                            onDocumentError: (_) => const NoDataFound(
+                                defaultColor: AppColor.blackPrimary,
+                                icon: AppIcons.iconBook,
+                                title: "Something went wrong\nTry again later"),
                           )).paddingOnly(left: 30.w),
                       20.height,
                       Container(
@@ -151,10 +158,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                         : "Unread"),
                               ],
                             ),
-                            "OPEN BOOK".toText(
-                                color: AppColor.whitePrimary,
-                                fontSize: 36,
-                                fontFamily: AppStyle.gothamBold),
+                            "OPEN BOOK"
+                                .toText(
+                                    color: AppColor.whitePrimary,
+                                    fontSize: 36,
+                                    fontFamily: AppStyle.gothamBold)
+                                .onPress(() async {
+                              await OpenFilex.open(widget.file.filePath!);
+                            }),
                           ],
                         ).paddingSymmetric(vertical: 10.h, horizontal: 30.w),
                       ),

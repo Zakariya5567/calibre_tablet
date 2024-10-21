@@ -60,8 +60,9 @@ dev_dependencies:
   internet_connection_checker: any
   intl: any
   xml: any
-  epub_view: ^3.2.0
+  epub_view: any
   flutter_svg: any
+  open_filex: any
 
 
 # For information on the generic Dart part of this file, see the

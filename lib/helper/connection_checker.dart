@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../view/widgets/custom_snackbar.dart';
 
-Future<bool> checkInternet() async {
+Future<bool> checkInternet({bool? isDisplayMessage}) async {
   var connectivityResult = await (Connectivity().checkConnectivity());
   if (connectivityResult.contains(ConnectivityResult.mobile)) {
     if (await InternetConnectionChecker().hasConnection) {
@@ -22,12 +22,14 @@ Future<bool> checkInternet() async {
       return true;
     } else {
       debugPrint("no connection");
+      if (isDisplayMessage == false) return false;
       showToast(
           message: AppConstant.checkYourInternetConnection, isError: true);
       return false;
     }
   } else {
     debugPrint(" not Connected");
+    if (isDisplayMessage == false) return false;
     showToast(message: AppConstant.checkYourInternetConnection, isError: true);
     return false;
   }

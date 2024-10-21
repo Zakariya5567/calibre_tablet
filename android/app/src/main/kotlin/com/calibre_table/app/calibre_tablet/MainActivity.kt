@@ -1,4 +1,4 @@
-package com.calibre_table.app.calibre_tablet
+package com.calibre_table.app
 
 import io.flutter.embedding.android.FlutterActivity
 
