@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:calibre_tablet/controller/home_controller.dart';
 import 'package:calibre_tablet/helper/database_helper.dart';
 import 'package:calibre_tablet/models/AccessToken_model.dart';
 import 'package:calibre_tablet/models/authorizeWithAccessToken_model.dart';
@@ -5,6 +8,7 @@ import 'package:calibre_tablet/models/base_model.dart';
 import 'package:calibre_tablet/models/folder_list_model.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:dropbox_client/dropbox_client.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -12,6 +16,7 @@ import 'dart:async';
 import 'package:xml/xml.dart';
 import '../helper/shared_preferences.dart';
 import '../models/dropbox_config.dart';
+import 'package:get/get.dart';
 
 class DropboxService {
   DatabaseHelper db = DatabaseHelper();
@@ -83,6 +88,7 @@ class DropboxService {
   }
 
   Future<bool> syncDropboxFiles() async {
+    HomeController homeController = Get.put(HomeController());
     try {
       // Start from the app's folder in Dropbox (root folder for 'calTablet')
       var result =
@@ -101,9 +107,9 @@ class DropboxService {
       final authorFolders = folderListModel.paths;
       // Get the application's document directory to store files locally
       final dir = await getApplicationDocumentsDirectory();
-
-      //int downloadedBooksCount = 0; // Track the number of books downloaded
-
+      final totalBook = folderListModel.paths.length;
+      int downloadedBooksCount = 0; // Track the number of books downloaded
+      homeController.setTotalDownloading(totalBook);
       // Iterate through each author folder
       for (var authorFolder in authorFolders) {
         // List the contents (books) of the current author folder
@@ -118,7 +124,7 @@ class DropboxService {
 
         // Iterate through each book folder
         for (var bookFolder in books) {
-          // if (downloadedBooksCount >= 5) {
+          // if (downloadedBooksCount >= 10) {
           //   // Stop downloading if 2 books have already been downloaded
           //   print('Limit of 2 books reached. Stopping further downloads.');
           //   return true;
@@ -173,6 +179,8 @@ class DropboxService {
             // Check if the book already exists in the database based on the OPF file
             bool existsInDB = await db.isFileInDatabase(localOpfPath);
             if (existsInDB) {
+              downloadedBooksCount++;
+              homeController.setDownloadingProgress(downloadedBooksCount);
               // If the book is already in the database, skip downloading it
               print('Book already exists in the database. Skipping download.');
               continue;
@@ -190,7 +198,8 @@ class DropboxService {
                 localCoverPath, localEpubPath, localOpfPath);
 
             // Increment the counter for downloaded books
-            // downloadedBooksCount++;
+            downloadedBooksCount++;
+            homeController.setDownloadingProgress(downloadedBooksCount);
           }
         }
       }
@@ -241,6 +250,16 @@ class DropboxService {
             ? authorElements.map((e) => e.text).toList().join(', ')
             : 'Unknown Author';
 
+        // Extract the 'opf:file-as' attribute for the author sort
+        final authorSort = authorElements.isNotEmpty
+            ? authorElements
+                .map((e) =>
+                    e.getAttribute('opf:file-as') ??
+                    e.text) // Fallback to text if 'opf:file-as' is not available
+                .toList()
+                .join(', ')
+            : 'Unknown Author';
+
         // Extract description
         final descriptionElements = document.findAllElements('dc:description');
         String description = descriptionElements.isNotEmpty
@@ -267,14 +286,28 @@ class DropboxService {
             ? (readStatusMeta.getAttribute('content') == 'true' ? '1' : '0')
             : '0';
 
-        // Extract pages from <meta> element
         final pagesMeta = document.findAllElements('meta').where((meta) {
           return meta.getAttribute('name') == 'calibre:user_metadata:#pages';
         }).firstOrNull; // Safely handle if not found
 
-        final pages = pagesMeta != null
-            ? int.tryParse(pagesMeta.getAttribute('content') ?? '0') ?? 0
-            : 0;
+        int totalPages = 0;
+        if (pagesMeta != null) {
+          final pagesContent = pagesMeta.getAttribute('content') ?? '{}';
+          print('Pages content: $pagesContent'); // Log the content
+
+          // Parse the content as a JSON-like string
+          final pagesData = jsonDecode(pagesContent) as Map<String, dynamic>;
+
+          // Extract the #value# field
+          final pages = pagesData['#value#'] ?? 0;
+
+          print('Parsed pages: $pages'); // Log the parsed pages
+
+          totalPages = pages;
+        } else {
+          print('Pages meta not found');
+          totalPages = 0; // Return 0 if not found
+        }
 
         // Use current timestamp as the download date
         String downloadDate = DateFormat("MMM d, yyyy").format(DateTime.now());
@@ -285,12 +318,13 @@ class DropboxService {
           author: author.isEmpty ? 'Unknown Author' : author,
           description:
               description.isEmpty ? 'No description available' : description,
+          authorSort: authorSort.isEmpty ? "Unknown Author" : authorSort,
           publishedDate: publishedDate.isEmpty ? 'Unknown' : publishedDate,
           readStatus: readStatus,
           downloadDate: downloadDate,
           filePath: epubPath,
           fileMetaPath: opfPath,
-          totalPages: pages,
+          totalPages: totalPages,
           coverImagePath: coverPath,
         );
 
@@ -358,13 +392,13 @@ class DropboxService {
       final result = await Dropbox.upload(file.path, dropboxFilePath);
       BaseModel baseModel = BaseModel.fromJson(result);
       if (baseModel.success == true) {
-        showToast(
-            message: baseModel.message ?? "File Updated Successfully",
-            isError: false);
+        // showToast(
+        //     message: baseModel.message ?? "File Updated Successfully",
+        //     isError: false);
         return true;
       } else {
-        showToast(
-            message: baseModel.message ?? "File Updated Error", isError: true);
+        // showToast(
+        //     message: baseModel.message ?? "File Updated Error", isError: true);
         return false;
       }
     } catch (e) {

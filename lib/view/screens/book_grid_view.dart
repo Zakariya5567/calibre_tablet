@@ -1,24 +1,12 @@
 import 'package:calibre_tablet/controller/home_controller.dart';
-import 'package:calibre_tablet/helper/database_helper.dart';
-import 'package:calibre_tablet/helper/debouncer.dart';
-import 'package:calibre_tablet/main.dart';
-import 'package:calibre_tablet/services/dropbox_services.dart';
 import 'package:calibre_tablet/utils/colors.dart';
 import 'package:calibre_tablet/utils/icons.dart';
 import 'package:calibre_tablet/utils/style.dart';
 import 'package:calibre_tablet/view/screens/book_detail_screen.dart';
-import 'package:calibre_tablet/view/shimmers/book_grid_shimmer.dart';
-import 'package:calibre_tablet/view/widgets/button_icon.dart';
-import 'package:calibre_tablet/view/widgets/custom_text_field.dart';
 import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
-import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
-import 'package:calibre_tablet/view/widgets/filter_bottomsheet.dart';
-import 'package:calibre_tablet/view/widgets/no_data_found.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:io';
-
 import 'package:get/get.dart';
 
 class BookGridView extends StatelessWidget {
@@ -39,19 +27,11 @@ class BookGridView extends StatelessWidget {
           final file = homeController.files[index];
           return GestureDetector(
             onTap: () {
-              // homeController.extractAndStoreMetadataFromOFP(
-              //     file.coverImagePath!, file.filePath!, file.fileMetaPath!);
+              homeController.setPageIndex(index);
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => BookDetailScreen(
-                      coverImage: file.coverImagePath == ""
-                          ? const SizedBox()
-                          : Image.file(
-                              File(file.coverImagePath!),
-                              fit: BoxFit.cover,
-                            ),
-                      file: file),
+                  builder: (context) => BookDetailScreen(),
                 ),
               );
             },

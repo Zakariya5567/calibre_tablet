@@ -79,10 +79,10 @@ sortBottomSheet() {
                   title: "Author",
                   iconData: Icons.person,
                   onTap: () {
-                    controller.setSelectedSort("author");
+                    controller.setSelectedSort("authorSort");
                     Get.back();
                   },
-                  isActive: controller.selectedSort == "author",
+                  isActive: controller.selectedSort == "authorSort",
                 ),
 
                 // Sort by Book Title

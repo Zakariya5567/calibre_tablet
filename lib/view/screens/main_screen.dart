@@ -4,11 +4,15 @@ import 'package:calibre_tablet/helper/debouncer.dart';
 import 'package:calibre_tablet/services/dropbox_services.dart';
 import 'package:calibre_tablet/utils/colors.dart';
 import 'package:calibre_tablet/utils/icons.dart';
+import 'package:calibre_tablet/utils/style.dart';
+import 'package:calibre_tablet/view/screens/book_detail_screen.dart';
 import 'package:calibre_tablet/view/screens/book_grid_view.dart';
 import 'package:calibre_tablet/view/shimmers/book_grid_shimmer.dart';
 import 'package:calibre_tablet/view/widgets/button_icon.dart';
+import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:calibre_tablet/view/widgets/custom_text_field.dart';
 import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
+import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/filter_bottomsheet.dart';
 import 'package:calibre_tablet/view/widgets/no_data_found.dart';
 import 'package:flutter/material.dart';
@@ -57,28 +61,42 @@ class _MainScreenState extends State<MainScreen> {
                         IconButton(
                             icon: const Icon(Icons.sync),
                             onPressed: () {
-                              homeController.getServices();
+                              if (controller.isLoading == true) {
+                                showToast(
+                                    message:
+                                        "Sync in progress, please wait.....",
+                                    isError: false);
+                              } else {
+                                homeController.getServices();
+                              }
                             }),
-                        homeController.isSearching
-                            ? CustomTextField(
-                                width: 2300.w,
-                                hintText: "Search",
-                                fillColor: AppColor.whitePrimary,
-                                controller: homeController.searchController,
-                                onChanged: (value) {
-                                  debouncer.run(() {
-                                    homeController.fetchSearchFiles();
-                                  });
-                                },
-                                suffixIcon: ButtonIcon(
-                                  color: AppColor.blackPrimary,
-                                  icon: AppIcons.iconCross,
-                                  onTap: () {
-                                    homeController.setSearching();
-                                  },
-                                ),
-                              )
-                            : const SizedBox(),
+                        homeController.isLoading == true
+                            ? ("Files Syncing    ${controller.progress.toString()} / ${controller.totalBook.toString()}")
+                                .toText(
+                                    color: AppColor.whitePrimary,
+                                    fontFamily: AppStyle.gothamMedium,
+                                    fontSize: 32,
+                                    fontWeight: AppStyle.w500)
+                            : homeController.isSearching
+                                ? CustomTextField(
+                                    width: 2300.w,
+                                    hintText: "Search",
+                                    fillColor: AppColor.whitePrimary,
+                                    controller: homeController.searchController,
+                                    onChanged: (value) {
+                                      debouncer.run(() {
+                                        homeController.fetchSearchFiles();
+                                      });
+                                    },
+                                    suffixIcon: ButtonIcon(
+                                      color: AppColor.blackPrimary,
+                                      icon: AppIcons.iconCross,
+                                      onTap: () {
+                                        homeController.setSearching();
+                                      },
+                                    ),
+                                  )
+                                : const SizedBox(),
                         Row(
                           children: [
                             IconButton(

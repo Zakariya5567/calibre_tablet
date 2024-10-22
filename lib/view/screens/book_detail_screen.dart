@@ -1,186 +1,164 @@
 import 'dart:io';
 import 'package:calibre_tablet/controller/home_controller.dart';
-import 'package:calibre_tablet/models/file_model.dart';
-import 'package:calibre_tablet/utils/constant.dart';
-import 'package:calibre_tablet/view/screens/book_grid_view.dart';
 import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
-import 'package:epub_view/epub_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/colors.dart';
 import '../../utils/icons.dart';
 import '../../utils/style.dart';
-import '../widgets/no_data_found.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class BookDetailScreen extends StatefulWidget {
   const BookDetailScreen({
     super.key,
-    required this.coverImage,
-    required this.file,
+    //required this.file,
   });
-  final Widget coverImage;
-  final FileModel file;
+  // final FileModel file;
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
 }
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
-  EpubController? _epubReaderController;
-  HomeController homeController = Get.put(HomeController());
   @override
-  initState() {
-    initializeView();
-    super.initState();
-  }
-
-  bool isLoading = true;
-  initializeView() async {
-    _epubReaderController = EpubController(
-        document: EpubDocument.openFile(File(widget.file.filePath ?? "")));
-    setState(() {
-      isLoading = false;
-    });
-    if (widget.file.readStatus == "0") {
-      homeController.markBookAsReadAndSync(widget.file);
-      //homeController.onBookRead(widget.file.id!);
-    }
-  }
-
-  @override
-  void dispose() {
-    _epubReaderController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColor.blackPrimary,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: AppColor.blackPrimary,
-        ),
-        body: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColor.blackPrimary),
-              )
-            : Row(
-                children: [
-                  Container(
-                    width: 800.w,
-                    height: 1620.h,
-                    decoration: BoxDecoration(
-                      color: AppColor.blackPrimary,
-                      image: const DecorationImage(
-                          image: AssetImage(AppIcons.iconBook)),
-                      border:
-                          Border.all(color: AppColor.redPrimary, width: 0.2),
-                    ),
-                    child: widget.coverImage,
-                  ),
-                  20.width,
-                  Column(
+  Widget build(BuildContext context) => GetBuilder(
+      init: HomeController(),
+      builder: (controller) {
+        return Scaffold(
+            backgroundColor: AppColor.blackPrimary,
+            appBar: AppBar(
+              elevation: 0,
+              backgroundColor: AppColor.blackPrimary,
+            ),
+            body: CarouselSlider.builder(
+                itemCount: controller.files.length,
+                options: CarouselOptions(
+                    autoPlay: false,
+                    enableInfiniteScroll: false,
+                    // enlargeCenterPage: true,
+                    viewportFraction: 1,
+                    // aspectRatio: 1.0,
+                    initialPage: controller.currentPage,
+                    onPageChanged: (currentIndex, reason) {
+                      controller.setPageIndex(currentIndex);
+                    }),
+                itemBuilder:
+                    (BuildContext context, int itemIndex, int pageViewIndex) {
+                  final file = controller.files[itemIndex];
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
+                        width: 750.w,
+                        height: 1470.h,
+                        decoration: BoxDecoration(
+                          color: AppColor.blackPrimary,
+                          image: const DecorationImage(
+                              image: AssetImage(AppIcons.iconBook)),
+                          border: Border.all(
+                              color: AppColor.redPrimary, width: 0.1),
+                        ),
+                        child: Image.file(
+                          File(file.coverImagePath!),
+                          fit: BoxFit.cover,
+                          width: 750.w,
+                          height: 1470.h,
+                        ),
+                      ),
+                      60.width,
+                      Container(
                         color: AppColor.blackPrimary,
-                        height: 160.h,
+                        height: 1470.h,
                         width: 2050.w,
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            (widget.file.title ?? " ").toText(
-                                color: AppColor.whitePrimary,
-                                fontSize: 36,
-                                fontFamily: AppStyle.gothamBold),
-                            10.height,
-                            (widget.file.author ?? " ").toText(
-                                color: AppColor.whitePrimary,
-                                fontSize: 28,
-                                fontFamily: AppStyle.gothamRegular),
-                            10.height,
-                            (widget.file.publishedDate ?? " ").toText(
-                                color: AppColor.whiteSecondary,
-                                fontSize: 28,
-                                fontFamily: AppStyle.gothamRegular),
-                          ],
-                        ).paddingSymmetric(vertical: 10.h, horizontal: 30.w),
-                      ),
-                      20.height,
-                      Container(
-                          color: AppColor.whitePrimary,
-                          height: 1310.h,
-                          width: 2050.w,
-                          child: EpubView(
-                            builders: EpubViewBuilders<DefaultBuilderOptions>(
-                              errorBuilder: (ctx, e) => const NoDataFound(
-                                  defaultColor: AppColor.blackPrimary,
-                                  icon: AppIcons.iconBook,
-                                  title:
-                                      "Something went wrong\nTry again later"),
-                              loaderBuilder: (ctx) => const Center(
-                                  child: CircularProgressIndicator(
-                                      color: AppColor.blackPrimary)),
-                              options: const DefaultBuilderOptions(),
-                              chapterDividerBuilder: (_) => const Divider(),
-                            ),
-                            controller: _epubReaderController!,
-                            onDocumentError: (_) => const NoDataFound(
-                                defaultColor: AppColor.blackPrimary,
-                                icon: AppIcons.iconBook,
-                                title: "Something went wrong\nTry again later"),
-                          )).paddingOnly(left: 30.w),
-                      20.height,
-                      Container(
-                        color: AppColor.blackPrimary,
-                        height: 110.h,
-                        width: 2050.w,
-                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                DetailFooter(
-                                    title: "Pages",
-                                    subtitle:
-                                        "${widget.file.totalPages ?? " "}"),
-                                DetailFooter(
-                                    title: "Date Downloaded",
-                                    subtitle: widget.file.downloadDate ?? " "),
-                                DetailFooter(
-                                    title: "Read Status",
-                                    subtitle: widget.file.readStatus == "1"
-                                        ? "Read"
-                                        : "Unread"),
-                              ],
-                            ),
-                            "OPEN BOOK"
-                                .toText(
+                                (file.title ?? " ").toText(
                                     color: AppColor.whitePrimary,
                                     fontSize: 36,
-                                    fontFamily: AppStyle.gothamBold)
-                                .onPress(() async {
-                              await OpenFilex.open(widget.file.filePath!);
-                            }),
+                                    fontFamily: AppStyle.gothamBold),
+                                10.height,
+                                (file.author ?? " ").toText(
+                                    color: AppColor.whitePrimary,
+                                    fontSize: 28,
+                                    fontFamily: AppStyle.gothamRegular),
+                                10.height,
+                                (file.publishedDate ?? " ").toText(
+                                    color: AppColor.whiteSecondary,
+                                    fontSize: 28,
+                                    fontFamily: AppStyle.gothamRegular),
+                                100.height,
+                                (file.description ?? " ").toText(
+                                  maxLine: 30,
+                                  color: AppColor.whitePrimary,
+                                  fontSize: 28,
+                                  fontWeight: AppStyle.w500,
+                                  fontFamily: AppStyle.gothamRegular,
+                                )
+                              ],
+                            ).paddingSymmetric(
+                                vertical: 10.h, horizontal: 30.w),
+                            Container(
+                              color: AppColor.blackPrimary,
+                              height: 120.h,
+                              width: 2050.w,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      DetailFooter(
+                                          title: "Pages",
+                                          subtitle:
+                                              "${file.totalPages ?? " "}"),
+                                      DetailFooter(
+                                          title: "Date Downloaded",
+                                          subtitle: file.downloadDate ?? " "),
+                                      DetailFooter(
+                                          title: "Read Status",
+                                          subtitle: file.readStatus ?? "Unread",
+                                          isRead: true),
+                                    ],
+                                  ),
+                                  "OPEN BOOK"
+                                      .toText(
+                                          color: AppColor.whitePrimary,
+                                          fontSize: 36,
+                                          fontFamily: AppStyle.gothamBold)
+                                      .onPress(() async {
+                                    await OpenFilex.open(file.filePath!);
+                                  }),
+                                ],
+                              ).paddingSymmetric(
+                                  vertical: 10.h, horizontal: 30.w),
+                            ),
                           ],
-                        ).paddingSymmetric(vertical: 10.h, horizontal: 30.w),
-                      ),
+                        ),
+                      )
                     ],
-                  )
-                ],
-              ).paddingOnly(left: 30.w, right: 30.w, bottom: 50.h),
-      );
+                  ).paddingOnly(
+                      left: 50.w, right: 50.w, bottom: 80.h, top: 80.h);
+                }));
+      });
 }
 
 class DetailFooter extends StatelessWidget {
-  const DetailFooter({super.key, required this.title, required this.subtitle});
+  const DetailFooter(
+      {super.key, required this.title, required this.subtitle, this.isRead});
 
   final String title;
   final String subtitle;
+  final bool? isRead;
 
   @override
   Widget build(BuildContext context) {
@@ -190,12 +168,19 @@ class DetailFooter extends StatelessWidget {
             color: AppColor.whitePrimary,
             fontSize: 28,
             fontFamily: AppStyle.gothamMedium),
-        15.height,
-        subtitle.toText(
-            color: AppColor.whitePrimary,
-            fontSize: 28,
-            fontFamily: AppStyle.gothamRegular),
+        10.height,
+        isRead == true
+            ? Icon(
+                Icons.done,
+                color: subtitle == "1"
+                    ? AppColor.greenPrimary
+                    : AppColor.blackPrimary,
+              )
+            : subtitle.toText(
+                color: AppColor.whitePrimary,
+                fontSize: 28,
+                fontFamily: AppStyle.gothamRegular),
       ],
-    ).paddingOnly(right: 30.w);
+    ).paddingOnly(right: 40.w);
   }
 }

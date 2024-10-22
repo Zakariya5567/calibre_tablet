@@ -1,6 +1,3 @@
-import 'dart:ffi';
-import 'dart:io';
-
 import 'package:calibre_tablet/helper/connection_checker.dart';
 import 'package:calibre_tablet/helper/database_helper.dart';
 import 'package:calibre_tablet/helper/shared_preferences.dart';
@@ -9,8 +6,6 @@ import 'package:calibre_tablet/services/dropbox_services.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'package:xml/xml.dart';
 
 class HomeController extends GetxController {
   DatabaseHelper databaseHelper = DatabaseHelper();
@@ -19,6 +14,25 @@ class HomeController extends GetxController {
   String selectedFiler = "all"; // Default to showing all books
   String selectedSort = "title"; // Default to showing all books
   String selectedOrderBy = "ascending"; // Default sort order
+
+  int totalBook = 0;
+  int progress = 0;
+
+  setTotalDownloading(int books) {
+    totalBook = books;
+    update();
+  }
+
+  setDownloadingProgress(int count) {
+    progress = count;
+    update();
+  }
+
+  int currentPage = 0;
+  setPageIndex(index) async {
+    currentPage = index;
+    update();
+  }
 
   // Set the selected filter (read/unread/all)
   void setSelectedFilter(String filter) {
@@ -67,6 +81,9 @@ class HomeController extends GetxController {
   }
 
   Future<void> getServices() async {
+    totalBook = 0;
+    progress = 0;
+    update();
     final hasInternet = await checkInternet();
     if (!hasInternet) return;
 

@@ -4,6 +4,7 @@ class FileModel {
   final int? id;
   final String? title;
   final String? author;
+  final String? authorSort;
   final String? description;
   final String? filePath;
   final String? fileMetaPath;
@@ -17,6 +18,7 @@ class FileModel {
     this.id,
     this.title,
     this.author,
+    this.authorSort,
     this.description,
     this.filePath,
     this.fileMetaPath,
@@ -33,6 +35,7 @@ class FileModel {
       id: map['id'],
       title: map['title'],
       author: map['author'],
+      authorSort: map['authorSort'],
       description: map['description'],
       filePath: map['filePath'],
       fileMetaPath: map['fileMetaPath'],
@@ -50,6 +53,7 @@ class FileModel {
       'id': id,
       'title': title,
       'author': author,
+      'authorSort': authorSort,
       'description': description,
       'filePath': filePath,
       'fileMetaPath': fileMetaPath,

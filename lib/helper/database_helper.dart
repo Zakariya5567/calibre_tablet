@@ -40,7 +40,8 @@ class DatabaseHelper {
       CREATE TABLE files(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
-        author TEXT,
+        author TEXT,      
+        authorSort TEXT, 
         description TEXT,
         filePath TEXT,   
         fileMetaPath TEXT,
@@ -57,6 +58,7 @@ class DatabaseHelper {
   Future<void> saveFileToDatabase({
     required String title,
     required String author,
+    required String authorSort,
     required String description,
     required String filePath,
     required String fileMetaPath,
@@ -72,6 +74,7 @@ class DatabaseHelper {
     Map<String, dynamic> fileData = {
       'title': title,
       'author': author,
+      'authorSort': authorSort,
       'description': description,
       'filePath': filePath,
       'fileMetaPath': fileMetaPath,
