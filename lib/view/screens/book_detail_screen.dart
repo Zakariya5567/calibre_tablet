@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:calibre_tablet/controller/home_controller.dart';
+import 'package:calibre_tablet/view/screens/open_book_screen.dart';
 import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
@@ -14,9 +15,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 class BookDetailScreen extends StatefulWidget {
   const BookDetailScreen({
     super.key,
-    //required this.file,
   });
-  // final FileModel file;
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
@@ -136,7 +135,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                           fontSize: 36,
                                           fontFamily: AppStyle.gothamBold)
                                       .onPress(() async {
-                                    await OpenFilex.open(file.filePath!);
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (context) {
+                                      return OpenBookScreen(file: file);
+                                    }));
                                   }),
                                 ],
                               ).paddingSymmetric(
