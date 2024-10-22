@@ -124,7 +124,7 @@ class DropboxService {
 
         // Iterate through each book folder
         for (var bookFolder in books) {
-          // if (downloadedBooksCount >= 10) {
+          // if (downloadedBooksCount >= 20) {
           //   // Stop downloading if 2 books have already been downloaded
           //   print('Limit of 2 books reached. Stopping further downloads.');
           //   return true;
@@ -223,7 +223,7 @@ class DropboxService {
       //     isError: false);
     } else {
       showToast(
-          message: download.message ?? "File download Error", isError: false);
+          message: download.message ?? "File download Error", isError: true);
     }
   }
 

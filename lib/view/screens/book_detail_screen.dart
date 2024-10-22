@@ -9,7 +9,6 @@ import 'package:get/get.dart';
 import '../../utils/colors.dart';
 import '../../utils/icons.dart';
 import '../../utils/style.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class BookDetailScreen extends StatefulWidget {

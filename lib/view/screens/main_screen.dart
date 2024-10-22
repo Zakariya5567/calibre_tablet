@@ -71,12 +71,15 @@ class _MainScreenState extends State<MainScreen> {
                               }
                             }),
                         homeController.isLoading == true
-                            ? ("Files Syncing    ${controller.progress.toString()} / ${controller.totalBook.toString()}")
-                                .toText(
-                                    color: AppColor.whitePrimary,
-                                    fontFamily: AppStyle.gothamMedium,
-                                    fontSize: 32,
-                                    fontWeight: AppStyle.w500)
+                            // ? ("Files Syncing    ${controller.progress.toString()} / ${controller.totalBook.toString()}")
+
+                            ? const SizedBox()
+                            // ("Files Syncing    ${controller.progress.toString()}")
+                            //         .toText(
+                            //             color: AppColor.whitePrimary,
+                            //             fontFamily: AppStyle.gothamMedium,
+                            //             fontSize: 32,
+                            //             fontWeight: AppStyle.w500)
                             : homeController.isSearching
                                 ? CustomTextField(
                                     width: 2300.w,

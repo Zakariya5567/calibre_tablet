@@ -62,7 +62,6 @@ dev_dependencies:
   xml: any
   epub_view: any
   flutter_svg: any
-  open_filex: any
   permission_handler: any
   carousel_slider: any
 
