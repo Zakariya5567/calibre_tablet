@@ -34,6 +34,7 @@ SnackBar _customSnackBar(BuildContext context, String message, bool isError) {
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: message.toText(
+              maxLine: 2,
               textAlign: TextAlign.start,
               fontSize: 26,
               color: AppColor.whitePrimary,

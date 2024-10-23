@@ -309,9 +309,34 @@ class DropboxService {
           totalPages = 0; // Return 0 if not found
         }
 
-        // Use current timestamp as the download date
-        String downloadDate = DateFormat("MMM d, yyyy").format(DateTime.now());
+        // Extract download date
+        final downloadDateElement =
+            document.findAllElements('meta').where((meta) {
+          return meta.getAttribute('name') ==
+              'calibre:user_metadata:#date_downloaded';
+        }).firstOrNull;
 
+        String downloadDate = 'Unknown';
+        if (downloadDateElement != null) {
+          final downloadDateString =
+              downloadDateElement.getAttribute('content');
+          if (downloadDateString != null) {
+            try {
+              // Parse the JSON-like content to extract the date
+              final Map<String, dynamic> downloadDateData =
+                  jsonDecode(downloadDateString);
+
+              // Assuming the date value is under the key "#value#"
+              String dateValueString =
+                  downloadDateData['#value#']['__value__'] ?? '';
+              DateTime downloadDateTime = DateTime.parse(dateValueString);
+              downloadDate = DateFormat("MMM d, yyyy").format(downloadDateTime);
+            } catch (e) {
+              print(
+                  'Error parsing download date: $downloadDateString. Error: $e');
+            }
+          }
+        }
         //Store the metadata and cover image path in the database
         await db.saveFileToDatabase(
           title: title.isEmpty ? 'Unknown Title' : title,
@@ -392,11 +417,13 @@ class DropboxService {
       final result = await Dropbox.upload(file.path, dropboxFilePath);
       BaseModel baseModel = BaseModel.fromJson(result);
       if (baseModel.success == true) {
+        print('file updated successfully in Dropbox:  ${baseModel.message}');
         // showToast(
         //     message: baseModel.message ?? "File Updated Successfully",
         //     isError: false);
         return true;
       } else {
+        print('Error File update: ${baseModel.message}');
         // showToast(
         //     message: baseModel.message ?? "File Updated Error", isError: true);
         return false;

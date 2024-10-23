@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:calibre_tablet/controller/home_controller.dart';
-import 'package:calibre_tablet/view/screens/open_book_screen.dart';
+import 'package:calibre_tablet/services/external_reader.dart';
 import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
@@ -134,10 +134,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                           fontSize: 36,
                                           fontFamily: AppStyle.gothamBold)
                                       .onPress(() async {
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(builder: (context) {
-                                      return OpenBookScreen(file: file);
-                                    }));
+                                    if (file.filePath != null) {
+                                      openFile(file.filePath!);
+                                    }
                                   }),
                                 ],
                               ).paddingSymmetric(
