@@ -4,15 +4,11 @@ import 'package:calibre_tablet/helper/debouncer.dart';
 import 'package:calibre_tablet/services/dropbox_services.dart';
 import 'package:calibre_tablet/utils/colors.dart';
 import 'package:calibre_tablet/utils/icons.dart';
-import 'package:calibre_tablet/utils/style.dart';
-import 'package:calibre_tablet/view/screens/book_detail_screen.dart';
 import 'package:calibre_tablet/view/screens/book_grid_view.dart';
 import 'package:calibre_tablet/view/shimmers/book_grid_shimmer.dart';
 import 'package:calibre_tablet/view/widgets/button_icon.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:calibre_tablet/view/widgets/custom_text_field.dart';
-import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
-import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/filter_bottomsheet.dart';
 import 'package:calibre_tablet/view/widgets/no_data_found.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +40,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+    final width = MediaQuery.sizeOf(context).width;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppColor.defaultStatusBar,
       child: GetBuilder(
@@ -82,7 +80,7 @@ class _MainScreenState extends State<MainScreen> {
                             //             fontWeight: AppStyle.w500)
                             : homeController.isSearching
                                 ? CustomTextField(
-                                    width: 2300.w,
+                                    width: width*0.6,
                                     hintText: "Search",
                                     fillColor: AppColor.whitePrimary,
                                     controller: homeController.searchController,
@@ -136,7 +134,6 @@ class _MainScreenState extends State<MainScreen> {
                         : Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: BookGridView(homeController: homeController)
-                            // : BookListView(homeController: homeController),
                             ));
           }),
     );

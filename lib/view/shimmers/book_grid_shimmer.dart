@@ -1,4 +1,3 @@
-import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +10,8 @@ class BookGridShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+    final width = MediaQuery.sizeOf(context).width;
     return GridView.builder(
         shrinkWrap: true,
         itemCount: 16,
@@ -38,57 +39,60 @@ class BookGridShimmer extends StatelessWidget {
                         border:
                             Border.all(color: AppColor.redPrimary, width: 0.2),
                       ),
-                      width: 260.w,
+                      width: width*0.092,
                     ),
                     Container(
-                      width: 670.w,
+                      width: width*0.225,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          10.height,
+                          SizedBox(height:  height*0.005),
                           Container(
-                            width: 300.w,
-                            height: 50.h,
+                            width: width*0.10,
+                            height: height*0.03,
                             color: AppColor.blackSecondary,
                           ),
-                          10.height,
+                          SizedBox(height:  height*0.006),
                           Container(
-                            width: 450.w,
-                            height: 50.h,
+                            width: width*0.15,
+                            height: height*0.03,
                             color: AppColor.blackSecondary,
                           ),
-                          20.height,
+                          SizedBox(height:  height*0.006),
                           Container(
-                            width: 650.w,
-                            height: 50.h,
+                            width: width*0.2,
+                            height: height*0.03,
                             color: AppColor.blackSecondary,
                           ),
-                          10.height,
+                          SizedBox(height:  height*0.006),
                           Container(
-                            width: 650.w,
-                            height: 50.h,
+                            width: width*0.2,
+                            height: height*0.03,
                             color: AppColor.blackSecondary,
                           ),
-                          10.height,
+                          SizedBox(height:  height*0.006),
                           Container(
-                            width: 650.w,
-                            height: 50.h,
+                            width: width*0.18,
+                            height: height*0.03,
                             color: AppColor.blackSecondary,
                           ),
-                          10.height,
+                          SizedBox(height:  height*0.006),
                           Container(
-                            width: 650.w,
-                            height: 50.h,
+                            width: width*0.18,
+                            height: height*0.03,
                             color: AppColor.blackSecondary,
                           ),
                         ],
-                      ).paddingSymmetric(horizontal: 20.w),
+                      ).paddingSymmetric(horizontal: width*0.01,vertical: height*0.01),
                     )
                   ],
                 ),
               ));
-        }).paddingAll(20.h);
+        }).paddingSymmetric(
+      horizontal: width*0.015,
+      vertical: height*0.02
+    );
   }
 }
 
