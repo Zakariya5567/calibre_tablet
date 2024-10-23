@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:calibre_tablet/controller/home_controller.dart';
-import 'package:calibre_tablet/view/screens/open_book_screen.dart';
+import 'package:calibre_tablet/services/external_reader.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
 import 'package:flutter/material.dart';
@@ -19,15 +19,12 @@ class BookDetailScreen extends StatefulWidget {
   State<BookDetailScreen> createState() => _BookDetailScreenState();
 }
 
-
 class _BookDetailScreenState extends State<BookDetailScreen> {
-
   @override
-  Widget build(BuildContext context){
-
+  Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
-    return  GetBuilder(
+    return GetBuilder(
         init: HomeController(),
         builder: (controller) {
           return Scaffold(
@@ -55,24 +52,28 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       children: [
                         Container(
                           height: double.infinity,
-                          width: width*0.28,
+                          width: width * 0.28,
                           decoration: BoxDecoration(
                             color: AppColor.blackPrimary,
                             image: const DecorationImage(
                                 image: AssetImage(AppIcons.iconBook)),
                             border: Border.all(
-                                color: AppColor.redPrimary, width: 0.1),
+                                color: AppColor.blackSecondary, width: 1),
                           ),
-                          child: file.coverImagePath == null ? const SizedBox():Image.file(
-                            File(file.coverImagePath!),
-                            fit: BoxFit.contain,
-                          ),
+                          child: file.coverImagePath == null
+                              ? const SizedBox()
+                              : Image.file(
+                                  File(file.coverImagePath!),
+                                  fit: BoxFit.contain,
+                                ),
                         ),
-                        SizedBox(width: width*0.035,),
+                        SizedBox(
+                          width: width * 0.035,
+                        ),
                         Container(
                           color: AppColor.blackPrimary,
                           height: double.infinity,
-                          width: width*0.60,
+                          width: width * 0.60,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -85,88 +86,109 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                       color: AppColor.whitePrimary,
                                       fontSize: 52,
                                       fontFamily: AppStyle.gothamBold),
-                                  SizedBox(height: height*0.005,),
+                                  SizedBox(
+                                    height: height * 0.005,
+                                  ),
                                   (file.author ?? " ").toText(
                                       color: AppColor.whitePrimary,
                                       fontSize: 36,
                                       fontFamily: AppStyle.gothamMedium),
-                                  SizedBox(height: height*0.005,),
+                                  SizedBox(
+                                    height: height * 0.005,
+                                  ),
                                   (file.publishedDate ?? " ").toText(
                                       color: AppColor.whiteSecondary,
                                       fontSize: 30,
                                       fontFamily: AppStyle.gothamRegular),
-                                  SizedBox(height: height*0.05,),
+                                  SizedBox(
+                                    height: height * 0.05,
+                                  ),
                                   (file.description ?? " ").toText(
-                                    maxLine: 30,
+                                    maxLine: 22,
                                     color: AppColor.whitePrimary,
-                                    fontSize: 28,
+                                    fontSize: 34,
                                     fontWeight: AppStyle.w500,
                                     fontFamily: AppStyle.gothamRegular,
                                   )
                                 ],
-                              ).paddingSymmetric(
-                                  vertical: height*0.002),
+                              ).paddingSymmetric(vertical: height * 0.002),
                               Container(
                                 color: AppColor.blackPrimary,
-                                height: height*0.08,
-                                width:width*0.60,
+                                height: height * 0.08,
+                                width: width * 0.60,
                                 child: Row(
                                   mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
                                         DetailFooter(
                                             height: height,
+                                            width: width,
                                             title: "Pages",
                                             subtitle:
-                                            "${file.totalPages ?? " "}"),
+                                                "${file.totalPages ?? " "}"),
                                         DetailFooter(
+                                            width: width,
                                             height: height,
                                             title: "Date Downloaded",
                                             subtitle: file.downloadDate ?? " "),
-                                        DetailFooter(
-                                            height: height,
-                                            title: "Read Status",
-                                            subtitle: file.readStatus ?? "Unread",
-                                            isRead: true),
+                                        InkWell(
+                                          onDoubleTap: () {
+                                            controller
+                                                .markBookAsReadAndSync(file);
+                                          },
+                                          child: DetailFooter(
+                                              height: height,
+                                              width: width,
+                                              title: "Read Status",
+                                              subtitle:
+                                                  file.readStatus ?? "Unread",
+                                              isRead: true),
+                                        ),
                                       ],
                                     ),
                                     "OPEN BOOK"
                                         .toText(
-                                        color: AppColor.whitePrimary,
-                                        fontSize: 52,
-                                        fontFamily: AppStyle.gothamBold)
+                                            color: AppColor.whitePrimary,
+                                            fontSize: 52,
+                                            fontFamily: AppStyle.gothamBold)
                                         .onPress(() async {
-                                      Navigator.of(context).push(
-                                          MaterialPageRoute(builder: (context) {
-                                            return OpenBookScreen(file: file);
-                                          }));
+                                      if (file.filePath != null) {
+                                        openFile(file.filePath!);
+                                      }
                                     }),
                                   ],
                                 ).paddingSymmetric(
-                                    vertical: height*0.01, horizontal: width*0.01),
+                                    vertical: height * 0.01,
+                                    horizontal: width * 0.01),
                               ),
                             ],
                           ),
                         )
                       ],
                     ).paddingSymmetric(
-                        horizontal: width*0.02, vertical:height*0.055);
+                        horizontal: width * 0.02, vertical: height * 0.055);
                   }));
         });
   }
 }
 
 class DetailFooter extends StatelessWidget {
-  const DetailFooter(
-      {super.key, required this.title, required this.subtitle,required this.height, this.isRead,});
+  const DetailFooter({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.height,
+    required this.width,
+    this.isRead,
+  });
 
   final String title;
   final String subtitle;
   final double height;
+  final double width;
   final bool? isRead;
-
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +198,9 @@ class DetailFooter extends StatelessWidget {
             color: AppColor.whitePrimary,
             fontSize: 28,
             fontFamily: AppStyle.gothamMedium),
-        SizedBox(height:height*0.01 ,),
+        SizedBox(
+          height: height * 0.01,
+        ),
         isRead == true
             ? Icon(
                 Icons.done,
@@ -189,6 +213,6 @@ class DetailFooter extends StatelessWidget {
                 fontSize: 28,
                 fontFamily: AppStyle.gothamRegular),
       ],
-    ).paddingOnly(right: height*0.1);
+    ).paddingOnly(right: width * 0.02);
   }
 }

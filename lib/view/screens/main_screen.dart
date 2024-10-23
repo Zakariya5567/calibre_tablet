@@ -80,7 +80,7 @@ class _MainScreenState extends State<MainScreen> {
                             //             fontWeight: AppStyle.w500)
                             : homeController.isSearching
                                 ? CustomTextField(
-                                    width: width*0.6,
+                                    width: width * 0.6,
                                     hintText: "Search",
                                     fillColor: AppColor.whitePrimary,
                                     controller: homeController.searchController,
@@ -122,10 +122,10 @@ class _MainScreenState extends State<MainScreen> {
                         )
                       ],
                     )),
-                floatingActionButton: FloatingActionButton(onPressed: () {
-                  db.clearDatabase();
-                  controller.fetchAllFiles();
-                }),
+                // floatingActionButton: FloatingActionButton(onPressed: () {
+                //   db.clearDatabase();
+                //   controller.fetchAllFiles();
+                // }),
                 body: homeController.isLoading == true
                     ? const BookGridShimmer()
                     : homeController.files.isEmpty
@@ -133,8 +133,8 @@ class _MainScreenState extends State<MainScreen> {
                             icon: AppIcons.iconBook, title: "No Books Found")
                         : Padding(
                             padding: const EdgeInsets.all(20.0),
-                            child: BookGridView(homeController: homeController)
-                            ));
+                            child:
+                                BookGridView(homeController: homeController)));
           }),
     );
   }

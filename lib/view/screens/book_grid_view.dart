@@ -18,8 +18,7 @@ class BookGridView extends StatelessWidget {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
     return GridView.builder(
-        itemCount: 20,
-        //homeController.files.length,
+        itemCount: homeController.files.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           childAspectRatio: 2.2,
@@ -27,8 +26,7 @@ class BookGridView extends StatelessWidget {
           crossAxisSpacing: 10,
         ),
         itemBuilder: (context, index) {
-          final file =FileModel();
-          //homeController.files[index];
+          final file = homeController.files[index];
           return GestureDetector(
             onTap: () {
               homeController.setPageIndex(index);
@@ -46,7 +44,7 @@ class BookGridView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
-                   width: width*0.092,
+                    width: width * 0.092,
                     height: double.infinity,
                     decoration: BoxDecoration(
                       color: AppColor.blackPrimary,
@@ -63,7 +61,7 @@ class BookGridView extends StatelessWidget {
                           ),
                   ),
                   SizedBox(
-                    width: width*0.225,
+                    width: width * 0.225,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,18 +70,16 @@ class BookGridView extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             SizedBox(
-                              width: width*0.18,
+                              width: width * 0.18,
                               child: (file.title ?? "").toText(
                                   color: AppColor.whitePrimary,
                                   fontSize: 26,
                                   maxLine: 2,
                                   fontFamily: AppStyle.gothamMedium),
-                              ),
-
-                              (file.readStatus != null && file.readStatus == "1")
-                                ?
-                              Icon(
-                                    size: height*0.03,
+                            ),
+                            (file.readStatus != null && file.readStatus == "1")
+                                ? Icon(
+                                    size: height * 0.027,
                                     Icons.check_circle_outline_outlined,
                                     color: AppColor.greenPrimary,
                                   )
@@ -92,25 +88,21 @@ class BookGridView extends StatelessWidget {
                                   )
                           ],
                         ),
-                        SizedBox(height:  height*0.005),
-
+                        SizedBox(height: height * 0.005),
                         (file.author ?? "").toText(
                             color: AppColor.whiteSecondary,
                             fontSize: 22,
                             maxLine: 2,
                             fontFamily: AppStyle.gothamRegular),
-                        SizedBox(height:  height*0.01),
-
+                        SizedBox(height: height * 0.008),
                         (file.description ?? " ").toText(
                             color: AppColor.whiteSecondary,
                             fontSize: 22,
                             fontFamily: AppStyle.gothamRegular,
-                            maxLine: 9),
+                            maxLine: 8),
                       ],
                     ).paddingSymmetric(
-                        horizontal: width*0.01,
-                        vertical: height*0.02
-                    ),
+                        horizontal: width * 0.01, vertical: height * 0.02),
                   )
                 ],
               ),

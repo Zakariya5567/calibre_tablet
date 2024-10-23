@@ -60,7 +60,6 @@ dev_dependencies:
   internet_connection_checker: any
   intl: any
   xml: any
-  epub_view: any
   flutter_svg: any
   permission_handler: any
   carousel_slider: any
