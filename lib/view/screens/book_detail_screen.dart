@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:calibre_tablet/controller/home_controller.dart';
+import 'package:calibre_tablet/helper/date_formatter.dart';
 import 'package:calibre_tablet/services/external_reader.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
@@ -96,10 +97,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                   SizedBox(
                                     height: height * 0.005,
                                   ),
-                                  (file.publishedDate ?? " ").toText(
-                                      color: AppColor.whiteSecondary,
-                                      fontSize: 30,
-                                      fontFamily: AppStyle.gothamRegular),
+                                  (file.publishedDate == null
+                                          ? ""
+                                          : (formatIsoDateToLongDate(
+                                              file.publishedDate!)))
+                                      .toText(
+                                          color: AppColor.whiteSecondary,
+                                          fontSize: 30,
+                                          fontFamily: AppStyle.gothamRegular),
                                   SizedBox(
                                     height: height * 0.05,
                                   ),
@@ -132,20 +137,24 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                             width: width,
                                             height: height,
                                             title: "Date Downloaded",
-                                            subtitle: file.downloadDate ?? " "),
-                                        InkWell(
-                                          onDoubleTap: () {
-                                            controller
-                                                .markBookAsReadAndSync(file);
-                                          },
-                                          child: DetailFooter(
-                                              height: height,
-                                              width: width,
-                                              title: "Read Status",
-                                              subtitle:
-                                                  file.readStatus ?? "Unread",
-                                              isRead: true),
-                                        ),
+                                            subtitle: (file.downloadDate == null
+                                                ? ""
+                                                : (formatIsoDateToLongDate(
+                                                    file.downloadDate!)))),
+                                        // InkWell(
+                                        //   onDoubleTap: () {
+                                        //     controller
+                                        //         .markBookAsReadAndSync(file);
+                                        //   },
+                                        // child:
+                                        DetailFooter(
+                                            height: height,
+                                            width: width,
+                                            title: "Read Status",
+                                            subtitle:
+                                                file.readStatus ?? "Unread",
+                                            isRead: true),
+                                        //),
                                       ],
                                     ),
                                     "OPEN BOOK"

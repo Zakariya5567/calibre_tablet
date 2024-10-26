@@ -106,7 +106,13 @@ class DropboxService {
       // Get the list of author folders from Dropbox
       final authorFolders = folderListModel.paths;
       // Get the application's document directory to store files locally
-      final dir = await getApplicationDocumentsDirectory();
+      if (authorFolders.length == 0) {
+        showToast(message: "No Calibre libraries found", isError: false);
+      }
+
+      /// Application directory changed to local directory
+      final dir = await SharedPref.getLocalFolderPath;
+      // final dir = await getApplicationDocumentsDirectory();
       final totalBook = folderListModel.paths.length;
       int downloadedBooksCount = 0; // Track the number of books downloaded
       homeController.setTotalDownloading(totalBook);
@@ -124,7 +130,7 @@ class DropboxService {
 
         // Iterate through each book folder
         for (var bookFolder in books) {
-          // if (downloadedBooksCount >= 20) {
+          // if (downloadedBooksCount >= 5) {
           //   // Stop downloading if 2 books have already been downloaded
           //   print('Limit of 2 books reached. Stopping further downloads.');
           //   return true;
@@ -159,15 +165,15 @@ class DropboxService {
           // Proceed only if all required files (cover, EPUB, OPF) are found
           if (coverPath != null && epubPath != null && opfPath != null) {
             // Create the local directory path where book files will be stored
+            /// Application directory changed to local directory
+            // final dynamicDirPath = '${dir.path}/${authorFolder['name']}/${bookFolder['name']}';
             final dynamicDirPath =
-                '${dir.path}/${authorFolder['name']}/${bookFolder['name']}';
+                '$dir/${authorFolder['name']}/${bookFolder['name']}';
             final dynamicDir = Directory(dynamicDirPath);
-
             // Ensure the directory exists, create it if it doesn't
             if (!await dynamicDir.exists()) {
               await dynamicDir.create(recursive: true);
             }
-
             // Generate local paths for cover, EPUB, and OPF files
             String localCoverPath =
                 '${dynamicDir.path}/${coverPath.split('/').last}';
@@ -270,11 +276,7 @@ class DropboxService {
         description = description.replaceAll(RegExp(r'<[^>]*>'), '');
 
         // Extract published date
-        final publishedDateString =
-            document.findAllElements('dc:date').single.text;
-        DateTime publishedDateTime = DateTime.parse(publishedDateString);
-        String publishedDate =
-            DateFormat("MMM d, yyyy").format(publishedDateTime);
+        final publishedDate = document.findAllElements('dc:date').single.text;
 
         // Extract readStatus from <meta> element
         final readStatusMeta = document.findAllElements('meta').where((meta) {
@@ -282,9 +284,27 @@ class DropboxService {
               'calibre:user_metadata:#read_status';
         }).firstOrNull; // Safely handle if not found
 
-        final readStatus = readStatusMeta != null
-            ? (readStatusMeta.getAttribute('content') == 'true' ? '1' : '0')
-            : '0';
+        String readStatus = '0'; // Default to '0' if not found
+
+        if (readStatusMeta != null) {
+          final content = readStatusMeta.getAttribute('content');
+
+          // Try to parse the content in case it's a JSON-like structure
+          try {
+            final decodedContent = json.decode(content ?? '{}');
+            if (decodedContent is Map &&
+                decodedContent.containsKey('#value#')) {
+              // If it contains '#value#' key, check its value
+              readStatus = decodedContent['#value#'] == true ? '1' : '0';
+            } else {
+              // Handle simple 'true'/'false' values
+              readStatus = content == 'true' ? '1' : '0';
+            }
+          } catch (e) {
+            // If parsing fails, fall back to checking for simple 'true'/'false'
+            readStatus = content == 'true' ? '1' : '0';
+          }
+        }
 
         final pagesMeta = document.findAllElements('meta').where((meta) {
           return meta.getAttribute('name') == 'calibre:user_metadata:#pages';
@@ -327,10 +347,7 @@ class DropboxService {
                   jsonDecode(downloadDateString);
 
               // Assuming the date value is under the key "#value#"
-              String dateValueString =
-                  downloadDateData['#value#']['__value__'] ?? '';
-              DateTime downloadDateTime = DateTime.parse(dateValueString);
-              downloadDate = DateFormat("MMM d, yyyy").format(downloadDateTime);
+              downloadDate = downloadDateData['#value#']['__value__'] ?? '';
             } catch (e) {
               print(
                   'Error parsing download date: $downloadDateString. Error: $e');
@@ -344,9 +361,13 @@ class DropboxService {
           description:
               description.isEmpty ? 'No description available' : description,
           authorSort: authorSort.isEmpty ? "Unknown Author" : authorSort,
-          publishedDate: publishedDate.isEmpty ? 'Unknown' : publishedDate,
+          publishedDate: publishedDate.isEmpty
+              ? DateTime.now().toIso8601String()
+              : publishedDate.toString(),
           readStatus: readStatus,
-          downloadDate: downloadDate,
+          downloadDate: downloadDate.isEmpty
+              ? DateTime.now().toIso8601String()
+              : downloadDate,
           filePath: epubPath,
           fileMetaPath: opfPath,
           totalPages: totalPages,
@@ -362,84 +383,84 @@ class DropboxService {
     }
   }
 
-  Future<bool?> updateReadStatusInOPF(String opfPath, bool readStatus) async {
-    try {
-      final file = File(opfPath);
-      if (await file.exists()) {
-        String opfContent = await file.readAsString();
+  // Future<bool?> updateReadStatusInOPF(String opfPath, bool readStatus) async {
+  //   try {
+  //     final file = File(opfPath);
+  //     if (await file.exists()) {
+  //       String opfContent = await file.readAsString();
+  //
+  //       // Parse the OPF content as XML
+  //       final document = XmlDocument.parse(opfContent);
+  //
+  //       // Find the meta tag for read_status or create it if it doesn't exist
+  //       var readStatusMeta = document.findAllElements('meta').where((meta) {
+  //         return meta.getAttribute('name') ==
+  //             'calibre:user_metadata:#read_status';
+  //       }).firstOrNull;
+  //
+  //       if (readStatusMeta != null) {
+  //         // Update the content attribute for read_status
+  //         readStatusMeta.setAttribute('content', readStatus ? 'true' : 'false');
+  //       } else {
+  //         // If the meta tag for read_status doesn't exist, create one
+  //         final metadata = document.findAllElements('metadata').firstOrNull;
+  //         if (metadata != null) {
+  //           metadata.children.add(XmlElement(
+  //             XmlName('meta'),
+  //             [
+  //               XmlAttribute(
+  //                   XmlName('name'), 'calibre:user_metadata:#read_status'),
+  //               XmlAttribute(XmlName('content'), readStatus ? 'true' : 'false'),
+  //             ],
+  //           ));
+  //         }
+  //       }
+  //
+  //       // Save the updated OPF content back to the file
+  //       await file.writeAsString(document.toXmlString(pretty: true));
+  //       print('OPF file updated successfully.');
+  //       return true;
+  //     } else {
+  //       print('OPF file not found at: $opfPath');
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     print('Error updating OPF file: $e');
+  //     return false;
+  //   }
+  // }
 
-        // Parse the OPF content as XML
-        final document = XmlDocument.parse(opfContent);
-
-        // Find the meta tag for read_status or create it if it doesn't exist
-        var readStatusMeta = document.findAllElements('meta').where((meta) {
-          return meta.getAttribute('name') ==
-              'calibre:user_metadata:#read_status';
-        }).firstOrNull;
-
-        if (readStatusMeta != null) {
-          // Update the content attribute for read_status
-          readStatusMeta.setAttribute('content', readStatus ? 'true' : 'false');
-        } else {
-          // If the meta tag for read_status doesn't exist, create one
-          final metadata = document.findAllElements('metadata').firstOrNull;
-          if (metadata != null) {
-            metadata.children.add(XmlElement(
-              XmlName('meta'),
-              [
-                XmlAttribute(
-                    XmlName('name'), 'calibre:user_metadata:#read_status'),
-                XmlAttribute(XmlName('content'), readStatus ? 'true' : 'false'),
-              ],
-            ));
-          }
-        }
-
-        // Save the updated OPF content back to the file
-        await file.writeAsString(document.toXmlString(pretty: true));
-        print('OPF file updated successfully.');
-        return true;
-      } else {
-        print('OPF file not found at: $opfPath');
-        return false;
-      }
-    } catch (e) {
-      print('Error updating OPF file: $e');
-      return false;
-    }
-  }
-
-  Future<bool?> uploadFileToDropbox(
-      String localFilePath, String dropboxFilePath) async {
-    try {
-      // Upload the updated OPF file to Dropbox
-      File file = File(localFilePath);
-      final result = await Dropbox.upload(file.path, dropboxFilePath);
-      BaseModel baseModel = BaseModel.fromJson(result);
-      if (baseModel.success == true) {
-        print('file updated successfully in Dropbox:  ${baseModel.message}');
-        // showToast(
-        //     message: baseModel.message ?? "File Updated Successfully",
-        //     isError: false);
-        return true;
-      } else {
-        print('Error File update: ${baseModel.message}');
-        // showToast(
-        //     message: baseModel.message ?? "File Updated Error", isError: true);
-        return false;
-      }
-    } catch (e) {
-      print('Error uploading file to Dropbox: $e');
-      return false;
-    }
-  }
-
-  Future<void> updateReadStatusAndUpload(
-      String localOpfPath, String dropboxOpfPath, bool readStatus) async {
-    // Step 1: Update the OPF file locally
-    await updateReadStatusInOPF(localOpfPath, readStatus);
-
-    // Step 2: Upload the updated OPF file to Dropbox
-    await uploadFileToDropbox(localOpfPath, dropboxOpfPath);
-  }
+  // Future<bool?> uploadFileToDropbox(
+  //     String localFilePath, String dropboxFilePath) async {
+  //   try {
+  //     // Upload the updated OPF file to Dropbox
+  //     File file = File(localFilePath);
+  //     final result = await Dropbox.upload(file.path, dropboxFilePath);
+  //     BaseModel baseModel = BaseModel.fromJson(result);
+  //     if (baseModel.success == true) {
+  //       print('file updated successfully in Dropbox:  ${baseModel.message}');
+  //       // showToast(
+  //       //     message: baseModel.message ?? "File Updated Successfully",
+  //       //     isError: false);
+  //       return true;
+  //     } else {
+  //       print('Error File update: ${baseModel.message}');
+  //       // showToast(
+  //       //     message: baseModel.message ?? "File Updated Error", isError: true);
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     print('Error uploading file to Dropbox: $e');
+  //     return false;
+  //   }
+  // }
+  //
+  // Future<void> updateReadStatusAndUpload(
+  //     String localOpfPath, String dropboxOpfPath, bool readStatus) async {
+  //   // Step 1: Update the OPF file locally
+  //   await updateReadStatusInOPF(localOpfPath, readStatus);
+  //
+  //   // Step 2: Upload the updated OPF file to Dropbox
+  //   await uploadFileToDropbox(localOpfPath, dropboxOpfPath);
+  // }
 }

@@ -9,7 +9,6 @@ import 'helper/scroll_behaviour.dart';
 GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // requestManageExternalStoragePermission();
   return runApp(MyApp());
 }
 

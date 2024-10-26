@@ -125,20 +125,20 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> handleAuthorizationAndUpdate(FileModel file) async {
-    try {
-      String? token = await dropboxService.getAccessToken();
-      if (token != null) {
-        print("Access Token : $token");
-        await SharedPref.storeAccessToken(token);
-        await authenticateWithAccessTokenAndUpdate(file);
-      } else {
-        throw Exception("Failed to retrieve access token");
-      }
-    } catch (e) {
-      handleError(e);
-    }
-  }
+  // Future<void> handleAuthorizationAndUpdate(FileModel file) async {
+  //   try {
+  //     String? token = await dropboxService.getAccessToken();
+  //     if (token != null) {
+  //       print("Access Token : $token");
+  //       await SharedPref.storeAccessToken(token);
+  //       await authenticateWithAccessTokenAndUpdate(file);
+  //     } else {
+  //       throw Exception("Failed to retrieve access token");
+  //     }
+  //   } catch (e) {
+  //     handleError(e);
+  //   }
+  // }
 
   Future<void> authenticateWithAccessTokenAndSync() async {
     String? token = await SharedPref.getAccessToken;
@@ -165,36 +165,36 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> authenticateWithAccessTokenAndUpdate(FileModel file) async {
-    String? token = await SharedPref.getAccessToken;
-
-    if (token == null) {
-      showAuthorizationError();
-      return;
-    }
-
-    try {
-      if (await dropboxService.authorizeWithAccessToken(token) == true) {
-        SharedPref.storeUserAuthorization(true);
-        String opfPath = file.fileMetaPath!;
-
-        int startIndex =
-            opfPath.indexOf('/app_flutter/') + '/app_flutter/'.length;
-        // Extract the part from that index to the end
-        String dropboxOpfPath = "/${opfPath.substring(startIndex)}";
-
-        await dropboxService.updateReadStatusAndUpload(
-            opfPath, dropboxOpfPath, true);
-        await databaseHelper.markBookAsRead(
-            file.id!); // Call the function to mark the book as read
-        await fetchAllFiles();
-      } else {
-        showAuthorizationError();
-      }
-    } catch (e) {
-      handleError(e);
-    }
-  }
+  // Future<void> authenticateWithAccessTokenAndUpdate(FileModel file) async {
+  //   String? token = await SharedPref.getAccessToken;
+  //
+  //   if (token == null) {
+  //     showAuthorizationError();
+  //     return;
+  //   }
+  //
+  //   try {
+  //     if (await dropboxService.authorizeWithAccessToken(token) == true) {
+  //       SharedPref.storeUserAuthorization(true);
+  //       String opfPath = file.fileMetaPath!;
+  //
+  //       int startIndex =
+  //           opfPath.indexOf('/app_flutter/') + '/app_flutter/'.length;
+  //       // Extract the part from that index to the end
+  //       String dropboxOpfPath = "/${opfPath.substring(startIndex)}";
+  //
+  //       await dropboxService.updateReadStatusAndUpload(
+  //           opfPath, dropboxOpfPath, true);
+  //       await databaseHelper.markBookAsRead(
+  //           file.id!); // Call the function to mark the book as read
+  //       await fetchAllFiles();
+  //     } else {
+  //       showAuthorizationError();
+  //     }
+  //   } catch (e) {
+  //     handleError(e);
+  //   }
+  // }
 
   void handleError(e) {
     SharedPref.storeUserAuthorization(false);
@@ -247,25 +247,25 @@ class HomeController extends GetxController {
     update(); // Update the UI with the fetched data
   }
 
-  void markBookAsReadAndSync(FileModel file) async {
-    final hasInternet = await checkInternet(isDisplayMessage: false);
-    if (!hasInternet) return;
-
-    bool? isAuthorized = await SharedPref.getUserAuthorization;
-    try {
-      if (await dropboxService.initDropbox() != true) {
-        return;
-      }
-
-      if (isAuthorized != true) {
-        if (await dropboxService.authorize() == true) {
-          await handleAuthorizationAndUpdate(file);
-        }
-      } else {
-        await authenticateWithAccessTokenAndUpdate(file);
-      }
-    } catch (e) {
-      handleError(e);
-    }
-  }
+  // void markBookAsReadAndSync(FileModel file) async {
+  //   final hasInternet = await checkInternet(isDisplayMessage: false);
+  //   if (!hasInternet) return;
+  //
+  //   bool? isAuthorized = await SharedPref.getUserAuthorization;
+  //   try {
+  //     if (await dropboxService.initDropbox() != true) {
+  //       return;
+  //     }
+  //
+  //     if (isAuthorized != true) {
+  //       if (await dropboxService.authorize() == true) {
+  //         await handleAuthorizationAndUpdate(file);
+  //       }
+  //     } else {
+  //       await authenticateWithAccessTokenAndUpdate(file);
+  //     }
+  //   } catch (e) {
+  //     handleError(e);
+  //   }
+  // }
 }

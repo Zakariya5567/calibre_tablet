@@ -14,6 +14,7 @@ import 'package:calibre_tablet/view/widgets/no_data_found.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../helper/permission_helper.dart';
 import '../widgets/sort_bottomsheet.dart';
 
 class MainScreen extends StatefulWidget {
@@ -33,9 +34,9 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    requestManageExternalStoragePermission();
     homeController.clearData();
     homeController.fetchAllFiles();
-    // homeController.getServices();
   }
 
   @override
@@ -122,19 +123,28 @@ class _MainScreenState extends State<MainScreen> {
                         )
                       ],
                     )),
-                // floatingActionButton: FloatingActionButton(onPressed: () {
-                //   db.clearDatabase();
-                //   controller.fetchAllFiles();
-                // }),
-                body: homeController.isLoading == true
-                    ? const BookGridShimmer()
-                    : homeController.files.isEmpty
-                        ? const NoDataFound(
-                            icon: AppIcons.iconBook, title: "No Books Found")
-                        : Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child:
-                                BookGridView(homeController: homeController)));
+                floatingActionButton: FloatingActionButton(onPressed: () {
+                  db.clearDatabase();
+                  controller.fetchAllFiles();
+                }),
+                body:
+                    // TextButton(
+                    //     child: Text("Select file Path",
+                    //         style: TextStyle(color: Colors.white)),
+                    //     onPressed: () {
+                    //       selectFolder();
+                    //     }));
+
+                    homeController.isLoading == true
+                        ? const BookGridShimmer()
+                        : homeController.files.isEmpty
+                            ? const NoDataFound(
+                                icon: AppIcons.iconBook,
+                                title: "No Books Found")
+                            : Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: BookGridView(
+                                    homeController: homeController)));
           }),
     );
   }

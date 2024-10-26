@@ -50,8 +50,8 @@ class BookGridView extends StatelessWidget {
                       color: AppColor.blackPrimary,
                       image: const DecorationImage(
                           image: AssetImage(AppIcons.iconBook)),
-                      border:
-                          Border.all(color: AppColor.redPrimary, width: 0.2),
+                      border: Border.all(
+                          color: AppColor.blackSecondary, width: 0.1),
                     ),
                     child: file.coverImagePath == null
                         ? const SizedBox()
@@ -95,6 +95,22 @@ class BookGridView extends StatelessWidget {
                             maxLine: 2,
                             fontFamily: AppStyle.gothamRegular),
                         SizedBox(height: height * 0.008),
+
+                        // ///============================
+                        // "Date Download ${file.downloadDate}".toText(
+                        //     color: AppColor.whiteSecondary,
+                        //     fontSize: 22,
+                        //     maxLine: 2,
+                        //     fontFamily: AppStyle.gothamRegular),
+                        //
+                        // SizedBox(height: height * 0.005),
+                        // "Date Published ${file.publishedDate}".toText(
+                        //     color: AppColor.whiteSecondary,
+                        //     fontSize: 22,
+                        //     maxLine: 2,
+                        //     fontFamily: AppStyle.gothamRegular),
+
+                        ///============================
                         (file.description ?? " ").toText(
                             color: AppColor.whiteSecondary,
                             fontSize: 22,
