@@ -89,7 +89,7 @@ class CustomTextField extends StatelessWidget {
         label != null
             ? label!.toText(
                 fontSize: 14,
-                fontFamily: AppStyle.gothamMedium,
+                fontFamily: AppStyle.helveticaMedium,
                 color: AppColor.whitePrimary)
             : const SizedBox(),
         label != null ? 5.height : const SizedBox(),
@@ -113,7 +113,7 @@ class CustomTextField extends StatelessWidget {
                       : AutovalidateMode.onUserInteraction),
               style: const TextStyle(
                   fontSize: 16,
-                  fontFamily: AppStyle.gothamRegular,
+                  fontFamily: AppStyle.helveticaRegular,
                   color: AppColor.blackPrimary),
               obscureText: obscureText ?? false,
               keyboardType: textInputType,
@@ -132,7 +132,7 @@ class CustomTextField extends StatelessWidget {
                 errorStyle: const TextStyle(
                     fontSize: 16,
                     color: AppColor.redPrimary,
-                    fontFamily: AppStyle.gothamRegular),
+                    fontFamily: AppStyle.helveticaRegular),
                 fillColor: fillColor,
                 filled: isBorder == true ? true : false,
                 floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -141,7 +141,7 @@ class CustomTextField extends StatelessWidget {
                 hintStyle: TextStyle(
                     fontSize: 16,
                     color: hintColor,
-                    fontFamily: AppStyle.gothamRegular),
+                    fontFamily: AppStyle.helveticaRegular),
                 contentPadding: isBorder == true
                     ? EdgeInsets.symmetric(vertical: 16.h, horizontal: 30.w)
                     : null,
@@ -149,7 +149,7 @@ class CustomTextField extends StatelessWidget {
                 prefixText: isPrefixIcon ? "+1 " : null,
                 prefixStyle: const TextStyle(
                     fontSize: 16,
-                    fontFamily: AppStyle.gothamRegular,
+                    fontFamily: AppStyle.helveticaRegular,
                     color: AppColor.whitePrimary),
                 border: isBorder == true
                     ? OutlineInputBorder(

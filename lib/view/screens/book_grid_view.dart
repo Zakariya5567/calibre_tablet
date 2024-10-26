@@ -73,9 +73,10 @@ class BookGridView extends StatelessWidget {
                               width: width * 0.18,
                               child: (file.title ?? "").toText(
                                   color: AppColor.whitePrimary,
-                                  fontSize: 26,
+                                  fontSize: 30,
                                   maxLine: 2,
-                                  fontFamily: AppStyle.gothamMedium),
+                                  fontFamily: AppStyle.helveticaMedium,
+                                  fontWeight: AppStyle.w500),
                             ),
                             (file.readStatus != null && file.readStatus == "1")
                                 ? Icon(
@@ -88,37 +89,21 @@ class BookGridView extends StatelessWidget {
                                   )
                           ],
                         ),
-                        SizedBox(height: height * 0.005),
+                        SizedBox(height: height * 0.003),
                         (file.author ?? "").toText(
                             color: AppColor.whiteSecondary,
                             fontSize: 22,
                             maxLine: 2,
-                            fontFamily: AppStyle.gothamRegular),
-                        SizedBox(height: height * 0.008),
-
-                        // ///============================
-                        // "Date Download ${file.downloadDate}".toText(
-                        //     color: AppColor.whiteSecondary,
-                        //     fontSize: 22,
-                        //     maxLine: 2,
-                        //     fontFamily: AppStyle.gothamRegular),
-                        //
-                        // SizedBox(height: height * 0.005),
-                        // "Date Published ${file.publishedDate}".toText(
-                        //     color: AppColor.whiteSecondary,
-                        //     fontSize: 22,
-                        //     maxLine: 2,
-                        //     fontFamily: AppStyle.gothamRegular),
-
-                        ///============================
+                            fontFamily: AppStyle.helveticaRegular),
+                        SizedBox(height: height * 0.015),
                         (file.description ?? " ").toText(
                             color: AppColor.whiteSecondary,
                             fontSize: 22,
-                            fontFamily: AppStyle.gothamRegular,
+                            fontFamily: AppStyle.helveticaRegular,
                             maxLine: 8),
                       ],
                     ).paddingSymmetric(
-                        horizontal: width * 0.01, vertical: height * 0.02),
+                        horizontal: width * 0.01, vertical: height * 0.005),
                   )
                 ],
               ),

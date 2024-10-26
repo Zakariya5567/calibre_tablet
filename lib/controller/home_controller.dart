@@ -7,6 +7,8 @@ import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
+import '../helper/permission_helper.dart';
+
 class HomeController extends GetxController {
   DatabaseHelper databaseHelper = DatabaseHelper();
   DropboxService dropboxService = DropboxService();
@@ -81,6 +83,18 @@ class HomeController extends GetxController {
   }
 
   Future<void> getServices() async {
+    bool? isGranted = await requestManageExternalStoragePermission();
+    if (isGranted == false) {
+      showToast(message: "Storage Permission denied", isError: true);
+      return;
+    }
+
+    String? selectedFolder = await selectFolder();
+    if (selectedFolder == null) {
+      showToast(message: "Storage Not Selected", isError: true);
+      return;
+    }
+
     totalBook = 0;
     progress = 0;
     update();

@@ -9,12 +9,17 @@ import 'package:calibre_tablet/view/shimmers/book_grid_shimmer.dart';
 import 'package:calibre_tablet/view/widgets/button_icon.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:calibre_tablet/view/widgets/custom_text_field.dart';
+import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/filter_bottomsheet.dart';
 import 'package:calibre_tablet/view/widgets/no_data_found.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../helper/permission_helper.dart';
+import '../../main.dart';
+import '../../models/folder_list_model.dart';
+import '../../utils/style.dart';
+import '../widgets/folder_selection_dialog.dart';
 import '../widgets/sort_bottomsheet.dart';
 
 class MainScreen extends StatefulWidget {
@@ -34,7 +39,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    requestManageExternalStoragePermission();
     homeController.clearData();
     homeController.fetchAllFiles();
   }
@@ -50,7 +54,7 @@ class _MainScreenState extends State<MainScreen> {
           builder: (controller) {
             return Scaffold(
                 key: _scaffoldKey,
-                backgroundColor: AppColor.blackSecondary,
+                backgroundColor: AppColor.blackPrimary,
                 appBar: AppBar(
                     automaticallyImplyLeading: false,
                     backgroundColor: AppColor.blackPrimary,
@@ -70,15 +74,12 @@ class _MainScreenState extends State<MainScreen> {
                               }
                             }),
                         homeController.isLoading == true
-                            // ? ("Files Syncing    ${controller.progress.toString()} / ${controller.totalBook.toString()}")
-
-                            ? const SizedBox()
-                            // ("Files Syncing    ${controller.progress.toString()}")
-                            //         .toText(
-                            //             color: AppColor.whitePrimary,
-                            //             fontFamily: AppStyle.gothamMedium,
-                            //             fontSize: 32,
-                            //             fontWeight: AppStyle.w500)
+                            ? ("Files Syncing    ${controller.progress.toString()} / ${controller.totalBook.toString()}")
+                                .toText(
+                                    color: AppColor.whitePrimary,
+                                    fontFamily: AppStyle.helveticaMedium,
+                                    fontSize: 32,
+                                    fontWeight: AppStyle.w500)
                             : homeController.isSearching
                                 ? CustomTextField(
                                     width: width * 0.6,
@@ -123,28 +124,19 @@ class _MainScreenState extends State<MainScreen> {
                         )
                       ],
                     )),
-                floatingActionButton: FloatingActionButton(onPressed: () {
-                  db.clearDatabase();
-                  controller.fetchAllFiles();
-                }),
-                body:
-                    // TextButton(
-                    //     child: Text("Select file Path",
-                    //         style: TextStyle(color: Colors.white)),
-                    //     onPressed: () {
-                    //       selectFolder();
-                    //     }));
-
-                    homeController.isLoading == true
-                        ? const BookGridShimmer()
-                        : homeController.files.isEmpty
-                            ? const NoDataFound(
-                                icon: AppIcons.iconBook,
-                                title: "No Books Found")
-                            : Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: BookGridView(
-                                    homeController: homeController)));
+                // floatingActionButton: FloatingActionButton(onPressed: () async {
+                //   // db.clearDatabase();
+                //   // controller.fetchAllFiles();
+                // }),
+                body: homeController.isLoading == true
+                    ? const BookGridShimmer()
+                    : homeController.files.isEmpty
+                        ? const NoDataFound(
+                            icon: AppIcons.iconBook, title: "No Books Found")
+                        : Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child:
+                                BookGridView(homeController: homeController)));
           }),
     );
   }

@@ -29,10 +29,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         init: HomeController(),
         builder: (controller) {
           return Scaffold(
-              backgroundColor: AppColor.blackPrimary,
+              backgroundColor: AppColor.blackSecondary,
               appBar: AppBar(
                 elevation: 0,
-                backgroundColor: AppColor.blackPrimary,
+                backgroundColor: AppColor.blackSecondary,
               ),
               body: CarouselSlider.builder(
                   itemCount: controller.files.length,
@@ -55,7 +55,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                           height: double.infinity,
                           width: width * 0.28,
                           decoration: BoxDecoration(
-                            color: AppColor.blackPrimary,
+                            color: AppColor.blackSecondary,
                             image: const DecorationImage(
                                 image: AssetImage(AppIcons.iconBook)),
                             border: Border.all(
@@ -72,7 +72,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                           width: width * 0.035,
                         ),
                         Container(
-                          color: AppColor.blackPrimary,
+                          color: AppColor.blackSecondary,
                           height: double.infinity,
                           width: width * 0.60,
                           child: Column(
@@ -85,15 +85,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                 children: [
                                   (file.title ?? " ").toText(
                                       color: AppColor.whitePrimary,
-                                      fontSize: 52,
-                                      fontFamily: AppStyle.gothamBold),
+                                      fontSize: 42,
+                                      fontFamily: AppStyle.helveticaBold,
+                                      fontWeight: AppStyle.w600),
                                   SizedBox(
-                                    height: height * 0.005,
+                                    height: height * 0.006,
                                   ),
                                   (file.author ?? " ").toText(
                                       color: AppColor.whitePrimary,
-                                      fontSize: 36,
-                                      fontFamily: AppStyle.gothamMedium),
+                                      fontSize: 32,
+                                      fontFamily: AppStyle.helveticaRegular),
                                   SizedBox(
                                     height: height * 0.005,
                                   ),
@@ -104,21 +105,22 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                       .toText(
                                           color: AppColor.whiteSecondary,
                                           fontSize: 30,
-                                          fontFamily: AppStyle.gothamRegular),
+                                          fontFamily:
+                                              AppStyle.helveticaRegular),
                                   SizedBox(
                                     height: height * 0.05,
                                   ),
                                   (file.description ?? " ").toText(
-                                    maxLine: 22,
-                                    color: AppColor.whitePrimary,
-                                    fontSize: 34,
-                                    fontWeight: AppStyle.w500,
-                                    fontFamily: AppStyle.gothamRegular,
-                                  )
+                                      maxLine: 19,
+                                      color: AppColor.whitePrimary,
+                                      fontSize: 38,
+                                      fontFamily: AppStyle.helveticaLight,
+                                      fontWeight: AppStyle.w300,
+                                      lineHeight: 1.3)
                                 ],
                               ).paddingSymmetric(vertical: height * 0.002),
                               Container(
-                                color: AppColor.blackPrimary,
+                                color: AppColor.blackSecondary,
                                 height: height * 0.08,
                                 width: width * 0.60,
                                 child: Row(
@@ -161,7 +163,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                         .toText(
                                             color: AppColor.whitePrimary,
                                             fontSize: 52,
-                                            fontFamily: AppStyle.gothamBold)
+                                            fontFamily: AppStyle.helveticaBold,
+                                            fontWeight: AppStyle.w700)
                                         .onPress(() async {
                                       if (file.filePath != null) {
                                         openFile(file.filePath!);
@@ -205,22 +208,23 @@ class DetailFooter extends StatelessWidget {
       children: [
         title.toText(
             color: AppColor.whitePrimary,
-            fontSize: 28,
-            fontFamily: AppStyle.gothamMedium),
+            fontSize: 30,
+            fontFamily: AppStyle.helveticaBold,
+            fontWeight: AppStyle.w500),
         SizedBox(
-          height: height * 0.01,
+          height: height * 0.005,
         ),
         isRead == true
             ? Icon(
                 Icons.done,
                 color: subtitle == "1"
                     ? AppColor.greenPrimary
-                    : AppColor.blackPrimary,
+                    : AppColor.blackSecondary,
               )
             : subtitle.toText(
                 color: AppColor.whitePrimary,
                 fontSize: 28,
-                fontFamily: AppStyle.gothamRegular),
+                fontFamily: AppStyle.helveticaRegular),
       ],
     ).paddingOnly(right: width * 0.02);
   }

@@ -202,4 +202,15 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  // Delete a file by fileMetaPath
+  Future<void> deleteFileByPath(String fileMetaPath) async {
+    final db = await database;
+    await db.delete(
+      'files',
+      where: 'fileMetaPath = ?',
+      whereArgs: [fileMetaPath],
+    );
+    print('File with path $fileMetaPath deleted from the database.');
+  }
 }

@@ -46,7 +46,7 @@ sortBottomSheet() {
                     ),
                     AppConstant.sortBy.toText(
                       color: AppColor.whitePrimary,
-                      fontFamily: AppStyle.gothamMedium,
+                      fontFamily: AppStyle.helveticaMedium,
                       fontSize: 36,
                     ),
                     30.width,
@@ -157,7 +157,7 @@ class SortItem extends StatelessWidget {
               20.width,
               title.toText(
                 color: AppColor.whitePrimary,
-                fontFamily: AppStyle.gothamRegular,
+                fontFamily: AppStyle.helveticaRegular,
                 fontSize: 28,
               ),
             ],
@@ -205,7 +205,7 @@ class ASCDESCItem extends StatelessWidget {
               .toText(
                 textAlign: TextAlign.center,
                 color: AppColor.whitePrimary,
-                fontFamily: AppStyle.gothamRegular,
+                fontFamily: AppStyle.helveticaRegular,
                 fontSize: 28,
               )
               .paddingOnly(bottom: 10.h),

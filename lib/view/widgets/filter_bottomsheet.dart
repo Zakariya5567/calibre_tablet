@@ -46,7 +46,7 @@ filterBottomSheet() {
                       ),
                       AppConstant.filterBy.toText(
                         color: AppColor.whitePrimary,
-                        fontFamily: AppStyle.gothamMedium,
+                        fontFamily: AppStyle.helveticaMedium,
                         fontSize: 36,
                       ),
                       30.width,
@@ -109,7 +109,7 @@ class FilterItem extends StatelessWidget {
         children: [
           title.toText(
               color: AppColor.whitePrimary,
-              fontFamily: AppStyle.gothamRegular,
+              fontFamily: AppStyle.helveticaRegular,
               fontSize: 28),
           CustomRadio(isActive: isActive, onTap: onTap),
         ],
@@ -148,7 +148,7 @@ class FilterItem extends StatelessWidget {
 //                         height: 90.h,
 //                         width: 90.h,
 //                         icon: AppIcons.iconCross,onTap: (){Get.back();},),
-//                      AppConstant.filterBy.toText(color: AppColor.whitePrimary,fontFamily: AppStyle.gothamMedium,fontSize: 36),
+//                      AppConstant.filterBy.toText(color: AppColor.whitePrimary,fontFamily: AppStyle.helveticaMedium,fontSize: 36),
 //                       30.width,
 //                     ],
 //                   ),
@@ -193,7 +193,7 @@ class FilterItem extends StatelessWidget {
 //       child: Row(
 //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
 //         children: [
-//            title.toText(color: AppColor.whitePrimary,fontFamily: AppStyle.gothamRegular,fontSize: 28),
+//            title.toText(color: AppColor.whitePrimary,fontFamily: AppStyle.helveticaRegular,fontSize: 28),
 //            CustomRadio(isActive: isActive, onTap: onTap)
 //         ],
 //       ).paddingAll(28.h),

@@ -30,11 +30,13 @@ class FolderFilePath {
   String? name;
   String? pathLower;
   String? pathDisplay;
+  bool? isSelected;
 
   FolderFilePath({
     this.name,
     this.pathLower,
     this.pathDisplay,
+    this.isSelected = false,
   });
 
   factory FolderFilePath.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class FolderFilePath {
       name: json['name'],
       pathLower: json['pathLower'],
       pathDisplay: json['pathDisplay'],
+      isSelected: false,
     );
   }
 
@@ -50,6 +53,7 @@ class FolderFilePath {
       'name': name,
       'pathLower': pathLower,
       'pathDisplay': pathDisplay,
+      'isSelected': isSelected,
     };
   }
 }

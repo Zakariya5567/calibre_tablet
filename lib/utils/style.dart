@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 // fontFamily
 
 class AppStyle {
-  static const String gothamLight = "GothamLight";
-  static const String gothamRegular = "GothamRegular";
-  static const String gothamMedium = "GothamMedium";
-  static const String gothamBold = "GothamBold";
+  static const String helveticaLight = "helveticaLight";
+  static const String helveticaMedium = "helveticaMediun";
+  static const String helveticaRegular = "helveticaRegular";
+  static const String helveticaBold = "helveticaBold";
 
 // Font Weight
   static const FontWeight w100 = FontWeight.w100;
