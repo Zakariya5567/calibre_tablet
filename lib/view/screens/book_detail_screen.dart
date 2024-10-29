@@ -83,8 +83,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  //(file.title ?? " ")
-                                  ("Recursion").toText(
+                                  (file.title ?? " ").toText(
                                       color: AppColor.whitePrimary,
                                       fontSize: 66,
                                       fontFamily: AppStyle.helveticaBold,
@@ -92,8 +91,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                   SizedBox(
                                     height: height * 0.006,
                                   ),
-                                  // (file.author ?? " ")
-                                  ("Black Crouch").toText(
+                                  (file.author ?? " ").toText(
                                       color: AppColor.whitePrimary,
                                       fontSize: 42,
                                       fontStyle: FontStyle.italic,
@@ -102,15 +100,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                   SizedBox(
                                     height: height * 0.005,
                                   ),
-                                  // (file.publishedDate == null
-                                  //         ? ""
-                                  //         : (formatIsoDateToLongDate(
-                                  //             file.publishedDate!)))
-                                  "May 20, 2019".toText(
-                                      color: AppColor.whiteSecondary,
-                                      fontSize: 34,
-                                      fontStyle: FontStyle.italic,
-                                      fontFamily: AppStyle.helveticaBold),
+                                  (file.publishedDate == null
+                                          ? ""
+                                          : (formatIsoDateToLongDate(
+                                              file.publishedDate!)))
+                                      .toText(
+                                          color: AppColor.whiteSecondary,
+                                          fontSize: 34,
+                                          fontStyle: FontStyle.italic,
+                                          fontFamily: AppStyle.helveticaBold),
                                   SizedBox(
                                     height: height * 0.05,
                                   ),
