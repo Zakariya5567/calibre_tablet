@@ -32,12 +32,10 @@ class BookGridShimmer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColor.blackSecondary,
-                        image: const DecorationImage(
+                        image: DecorationImage(
                             image: AssetImage(AppIcons.iconBook)),
-                        border:
-                            Border.all(color: AppColor.redPrimary, width: 0.2),
                       ),
                       width: width * 0.092,
                     ),

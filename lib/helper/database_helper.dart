@@ -137,7 +137,7 @@ class DatabaseHelper {
     final db = await database;
 
     // Construct the WHERE clause for filtering by search text and read/unread status
-    String whereClause = 'title LIKE ?';
+    String whereClause = '(title LIKE ? OR author LIKE ? OR authorSort LIKE ?)';
     if (filterByStatus == "1") {
       whereClause = '$whereClause AND readStatus = 1'; // Filter by read
     } else if (filterByStatus == "0") {
@@ -154,9 +154,12 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db.query(
       'files',
       where: whereClause,
-      whereArgs: ['%$searchText%'], // Search text applied to the title
-      orderBy:
-          orderByClause, // Default ordering by title in ascending/descending
+      whereArgs: [
+        '%$searchText%',
+        '%$searchText%',
+        '%$searchText%',
+      ], // Search text applied to title, author, and authorSort
+      orderBy: orderByClause,
     );
 
     return List.generate(maps.length, (i) {

@@ -14,6 +14,7 @@ extension StringExtension on String {
           Color? backgroundColor,
           double? lineHeight,
           bool? isBold,
+          FontStyle? fontStyle,
           bool? isMedium}) =>
       Text(
         this,
@@ -25,7 +26,7 @@ extension StringExtension on String {
           color: color ?? AppColor.blackSecondary,
           fontSize: (fontSize ?? 12).toInt().h,
           fontFamily: fontFamily,
-          fontStyle: FontStyle.normal,
+          fontStyle: fontStyle ?? FontStyle.normal,
           overflow: overflow ?? TextOverflow.ellipsis,
           fontWeight: fontWeight ??
               (isBold == true

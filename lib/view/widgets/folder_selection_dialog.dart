@@ -34,38 +34,41 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
               fontSize: 42,
               fontFamily: AppStyle.helveticaBold,
               fontWeight: AppStyle.w600),
-          100.height,
-          Container(
-              height: 120.h,
-              color: AppColor.blackPrimary,
-              child: CheckboxListTile(
-                title: "Select All".toText(
-                    color: AppColor.whitePrimary,
-                    fontSize: 34,
-                    fontFamily: AppStyle.helveticaRegular,
-                    fontWeight: AppStyle.w400),
-                checkColor: AppColor.whitePrimary,
-                fillColor: WidgetStateProperty.resolveWith((states) =>
-                    states.contains(WidgetState.selected)
-                        ? AppColor.greenPrimary
-                        : AppColor.whitePrimary),
-                value: isSelectAll,
-                onChanged: (bool? value) {
-                  setState(() {
-                    isSelectAll = value ?? false;
-                    for (var folder in widget.folders) {
-                      folder.isSelected = isSelectAll;
-                      if (isSelectAll) {
-                        if (!selectedFolders.contains(folder)) {
-                          selectedFolders.add(folder);
-                        }
-                      } else {
-                        selectedFolders.clear();
-                      }
-                    }
-                  });
-                },
-              )),
+          widget.folders.isEmpty
+              ? const SizedBox()
+              : widget.folders.length == 1
+                  ? const SizedBox()
+                  : Container(
+                      height: 120.h,
+                      color: AppColor.blackPrimary,
+                      child: CheckboxListTile(
+                        title: "Select All".toText(
+                            color: AppColor.whitePrimary,
+                            fontSize: 34,
+                            fontFamily: AppStyle.helveticaRegular,
+                            fontWeight: AppStyle.w400),
+                        checkColor: AppColor.whitePrimary,
+                        fillColor: WidgetStateProperty.resolveWith((states) =>
+                            states.contains(WidgetState.selected)
+                                ? AppColor.greenPrimary
+                                : AppColor.whitePrimary),
+                        value: isSelectAll,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            isSelectAll = value ?? false;
+                            for (var folder in widget.folders) {
+                              folder.isSelected = isSelectAll;
+                              if (isSelectAll) {
+                                if (!selectedFolders.contains(folder)) {
+                                  selectedFolders.add(folder);
+                                }
+                              } else {
+                                selectedFolders.clear();
+                              }
+                            }
+                          });
+                        },
+                      )).paddingOnly(top: 100.h),
         ],
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

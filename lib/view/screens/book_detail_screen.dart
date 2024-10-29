@@ -29,10 +29,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         init: HomeController(),
         builder: (controller) {
           return Scaffold(
-              backgroundColor: AppColor.blackSecondary,
+              backgroundColor: AppColor.blackPrimary,
               appBar: AppBar(
                 elevation: 0,
-                backgroundColor: AppColor.blackSecondary,
+                backgroundColor: AppColor.blackPrimary,
               ),
               body: CarouselSlider.builder(
                   itemCount: controller.files.length,
@@ -52,14 +52,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          height: double.infinity,
+                          // height: double.infinity,
                           width: width * 0.28,
                           decoration: BoxDecoration(
-                            color: AppColor.blackSecondary,
+                            color: AppColor.blackPrimary,
                             image: const DecorationImage(
                                 image: AssetImage(AppIcons.iconBook)),
                             border: Border.all(
-                                color: AppColor.blackSecondary, width: 1),
+                                color: AppColor.blackPrimary, width: 1),
                           ),
                           child: file.coverImagePath == null
                               ? const SizedBox()
@@ -72,7 +72,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                           width: width * 0.035,
                         ),
                         Container(
-                          color: AppColor.blackSecondary,
+                          color: AppColor.blackPrimary,
                           height: double.infinity,
                           width: width * 0.60,
                           child: Column(
@@ -83,49 +83,53 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  (file.title ?? " ").toText(
+                                  //(file.title ?? " ")
+                                  ("Recursion").toText(
                                       color: AppColor.whitePrimary,
-                                      fontSize: 42,
+                                      fontSize: 66,
                                       fontFamily: AppStyle.helveticaBold,
                                       fontWeight: AppStyle.w600),
                                   SizedBox(
                                     height: height * 0.006,
                                   ),
-                                  (file.author ?? " ").toText(
+                                  // (file.author ?? " ")
+                                  ("Black Crouch").toText(
                                       color: AppColor.whitePrimary,
-                                      fontSize: 32,
-                                      fontFamily: AppStyle.helveticaRegular),
+                                      fontSize: 42,
+                                      fontStyle: FontStyle.italic,
+                                      fontFamily: AppStyle.helveticaRegular,
+                                      fontWeight: AppStyle.w400),
                                   SizedBox(
                                     height: height * 0.005,
                                   ),
-                                  (file.publishedDate == null
-                                          ? ""
-                                          : (formatIsoDateToLongDate(
-                                              file.publishedDate!)))
-                                      .toText(
-                                          color: AppColor.whiteSecondary,
-                                          fontSize: 30,
-                                          fontFamily:
-                                              AppStyle.helveticaRegular),
+                                  // (file.publishedDate == null
+                                  //         ? ""
+                                  //         : (formatIsoDateToLongDate(
+                                  //             file.publishedDate!)))
+                                  "May 20, 2019".toText(
+                                      color: AppColor.whiteSecondary,
+                                      fontSize: 34,
+                                      fontStyle: FontStyle.italic,
+                                      fontFamily: AppStyle.helveticaBold),
                                   SizedBox(
                                     height: height * 0.05,
                                   ),
                                   (file.description ?? " ").toText(
                                       maxLine: 19,
                                       color: AppColor.whitePrimary,
-                                      fontSize: 38,
-                                      fontFamily: AppStyle.helveticaLight,
-                                      fontWeight: AppStyle.w300,
+                                      fontSize: 36,
+                                      fontFamily: AppStyle.helveticaRegular,
                                       lineHeight: 1.3)
                                 ],
-                              ).paddingSymmetric(vertical: height * 0.002),
+                              ).paddingSymmetric(vertical: height * 0.001),
                               Container(
-                                color: AppColor.blackSecondary,
+                                color: AppColor.blackPrimary,
                                 height: height * 0.08,
                                 width: width * 0.60,
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
@@ -171,9 +175,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                       }
                                     }),
                                   ],
-                                ).paddingSymmetric(
-                                    vertical: height * 0.01,
-                                    horizontal: width * 0.01),
+                                ),
                               ),
                             ],
                           ),
@@ -219,7 +221,7 @@ class DetailFooter extends StatelessWidget {
                 Icons.done,
                 color: subtitle == "1"
                     ? AppColor.greenPrimary
-                    : AppColor.blackSecondary,
+                    : AppColor.blackPrimary,
               )
             : subtitle.toText(
                 color: AppColor.whitePrimary,

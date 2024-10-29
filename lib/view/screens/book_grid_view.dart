@@ -76,7 +76,7 @@ class BookGridView extends StatelessWidget {
                                   fontSize: 30,
                                   maxLine: 2,
                                   fontFamily: AppStyle.helveticaMedium,
-                                  fontWeight: AppStyle.w500),
+                                  fontWeight: AppStyle.w400),
                             ),
                             (file.readStatus != null && file.readStatus == "1")
                                 ? Icon(
@@ -94,7 +94,8 @@ class BookGridView extends StatelessWidget {
                             color: AppColor.whiteSecondary,
                             fontSize: 22,
                             maxLine: 2,
-                            fontFamily: AppStyle.helveticaRegular),
+                            fontFamily: AppStyle.helveticaMedium,
+                            fontWeight: AppStyle.w500),
                         SizedBox(height: height * 0.015),
                         (file.description ?? " ").toText(
                             color: AppColor.whiteSecondary,
