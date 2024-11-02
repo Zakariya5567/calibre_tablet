@@ -1,6 +1,7 @@
 import 'package:calibre_tablet/controller/home_controller.dart';
 import 'package:calibre_tablet/helper/database_helper.dart';
 import 'package:calibre_tablet/helper/debouncer.dart';
+import 'package:calibre_tablet/helper/shared_preferences.dart';
 import 'package:calibre_tablet/services/dropbox_services.dart';
 import 'package:calibre_tablet/utils/colors.dart';
 import 'package:calibre_tablet/utils/icons.dart';
@@ -9,6 +10,7 @@ import 'package:calibre_tablet/view/shimmers/book_grid_shimmer.dart';
 import 'package:calibre_tablet/view/widgets/button_icon.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:calibre_tablet/view/widgets/custom_text_field.dart';
+import 'package:calibre_tablet/view/widgets/extention/int_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/filter_bottomsheet.dart';
 import 'package:calibre_tablet/view/widgets/no_data_found.dart';
@@ -38,9 +40,18 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void initState() {
+    initializeData();
     super.initState();
+  }
+
+  initializeData() async {
+    bool? firstInstall = await SharedPref.getFirstInstall;
     homeController.clearData();
     homeController.fetchAllFiles();
+    if (firstInstall != true) {
+      await SharedPref.storeFirstInstall(true);
+      homeController.getServices();
+    }
   }
 
   @override
@@ -73,33 +84,26 @@ class _MainScreenState extends State<MainScreen> {
                                 homeController.getServices();
                               }
                             }),
-                        homeController.isLoading == true
-                            ? ("Files Syncing    ${controller.progress.toString()} / ${controller.totalBook.toString()}")
-                                .toText(
-                                    color: AppColor.whitePrimary,
-                                    fontFamily: AppStyle.helveticaMedium,
-                                    fontSize: 32,
-                                    fontWeight: AppStyle.w500)
-                            : homeController.isSearching
-                                ? CustomTextField(
-                                    width: width * 0.6,
-                                    hintText: "Search",
-                                    fillColor: AppColor.whitePrimary,
-                                    controller: homeController.searchController,
-                                    onChanged: (value) {
-                                      debouncer.run(() {
-                                        homeController.fetchSearchFiles();
-                                      });
-                                    },
-                                    suffixIcon: ButtonIcon(
-                                      color: AppColor.blackPrimary,
-                                      icon: AppIcons.iconCross,
-                                      onTap: () {
-                                        homeController.setSearching();
-                                      },
-                                    ),
-                                  )
-                                : const SizedBox(),
+                        homeController.isSearching
+                            ? CustomTextField(
+                                width: width * 0.6,
+                                hintText: "Search",
+                                fillColor: AppColor.whitePrimary,
+                                controller: homeController.searchController,
+                                onChanged: (value) {
+                                  debouncer.run(() {
+                                    homeController.fetchSearchFiles();
+                                  });
+                                },
+                                suffixIcon: ButtonIcon(
+                                  color: AppColor.blackPrimary,
+                                  icon: AppIcons.iconCross,
+                                  onTap: () {
+                                    homeController.setSearching();
+                                  },
+                                ),
+                              )
+                            : const SizedBox(),
                         Row(
                           children: [
                             IconButton(
@@ -124,12 +128,123 @@ class _MainScreenState extends State<MainScreen> {
                         )
                       ],
                     )),
-                // floatingActionButton: FloatingActionButton(onPressed: () async {
-                //   // db.clearDatabase();
-                //   // controller.fetchAllFiles();
-                // }),
                 body: homeController.isLoading == true
-                    ? const BookGridShimmer()
+                    ? Stack(
+                        children: [
+                          SizedBox(
+                            height: height,
+                            width: width,
+                          ),
+                          const BookGridShimmer(),
+                          SizedBox(
+                            width: width,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Logo of the Error that no data found
+
+                                /// Sync progress
+                                controller.syncName == null
+                                    ? const SizedBox()
+                                    : (controller.syncName ?? "")
+                                        .toText(
+                                          textAlign: TextAlign.center,
+                                          fontSize: 52,
+                                          fontFamily: AppStyle.helveticaMedium,
+                                          fontWeight: AppStyle.w500,
+                                          color: AppColor.whitePrimary,
+                                        )
+                                        .paddingOnly(bottom: 10.h),
+
+                                /// Download progress
+                                controller.itemLibrariesName == null
+                                    ? const SizedBox()
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          (controller.itemLibrariesName ?? "")
+                                              .toText(
+                                            textAlign: TextAlign.center,
+                                            fontSize: 36,
+                                            fontFamily:
+                                                AppStyle.helveticaMedium,
+                                            fontWeight: AppStyle.w500,
+                                            color: AppColor.whitePrimary,
+                                          ),
+                                          " ${controller.totalLibrariesItems.toString()} / ${controller.librariesProgress.toString()}"
+                                              .toText(
+                                            textAlign: TextAlign.center,
+                                            fontSize: 36,
+                                            fontFamily:
+                                                AppStyle.helveticaMedium,
+                                            fontWeight: AppStyle.w500,
+                                            color: AppColor.whitePrimary,
+                                          ),
+                                        ],
+                                      ).paddingOnly(bottom: 10.h),
+
+                                /// Authors
+                                controller.itemAuthorsName == null
+                                    ? const SizedBox()
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          (controller.itemAuthorsName ?? "")
+                                              .toText(
+                                            textAlign: TextAlign.center,
+                                            fontSize: 36,
+                                            fontFamily:
+                                                AppStyle.helveticaMedium,
+                                            fontWeight: AppStyle.w500,
+                                            color: AppColor.whitePrimary,
+                                          ),
+                                          " ${controller.totalAuthorsItems.toString()} / ${controller.authorsProgress.toString()}"
+                                              .toText(
+                                            textAlign: TextAlign.center,
+                                            fontSize: 36,
+                                            fontFamily:
+                                                AppStyle.helveticaMedium,
+                                            fontWeight: AppStyle.w500,
+                                            color: AppColor.whitePrimary,
+                                          )
+                                        ],
+                                      ).paddingOnly(bottom: 10.h),
+
+                                ///BOOKS
+                                controller.itemBooksName == null
+                                    ? const SizedBox()
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          (controller.itemBooksName ?? "")
+                                              .toText(
+                                            textAlign: TextAlign.center,
+                                            fontSize: 36,
+                                            fontFamily:
+                                                AppStyle.helveticaMedium,
+                                            fontWeight: AppStyle.w500,
+                                            color: AppColor.whitePrimary,
+                                          ),
+                                          " ${controller.totalBooksItems.toString()} / ${controller.booksProgress.toString()}"
+                                              .toText(
+                                            textAlign: TextAlign.center,
+                                            fontSize: 36,
+                                            fontFamily:
+                                                AppStyle.helveticaMedium,
+                                            fontWeight: AppStyle.w500,
+                                            color: AppColor.whitePrimary,
+                                          )
+                                        ],
+                                      ).paddingOnly(bottom: 10.h),
+                              ],
+                            ),
+                          )
+                        ],
+                      )
                     : homeController.files.isEmpty
                         ? const NoDataFound(
                             icon: AppIcons.iconBook, title: "No Books Found")

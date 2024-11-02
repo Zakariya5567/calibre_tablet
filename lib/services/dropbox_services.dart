@@ -7,6 +7,7 @@ import 'package:calibre_tablet/models/AccessToken_model.dart';
 import 'package:calibre_tablet/models/authorizeWithAccessToken_model.dart';
 import 'package:calibre_tablet/models/base_model.dart';
 import 'package:calibre_tablet/models/folder_list_model.dart';
+import 'package:calibre_tablet/models/libraries_path_model.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:dropbox_client/dropbox_client.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,7 +32,6 @@ class DropboxService {
     String dropboxClientId = dropboxConfig.clientId;
     String dropboxKey = dropboxConfig.key;
     String dropboxSecret = dropboxConfig.secret;
-
     try {
       final result =
           await Dropbox.init(dropboxClientId, dropboxKey, dropboxSecret);
@@ -52,7 +52,7 @@ class DropboxService {
 
   Future<bool?> authorize() async {
     final result = await Dropbox.authorize();
-    await Future.delayed(const Duration(seconds: 30));
+    await Future.delayed(const Duration(seconds: 15));
     final BaseModel baseModel = BaseModel.fromJson(result);
     if (baseModel.success == true) {
       return baseModel.success;
@@ -93,42 +93,52 @@ class DropboxService {
   }
 
   Future<bool> syncDropboxFiles() async {
+    HomeController controller = Get.put(HomeController());
     try {
+      ///================== First time to get dropbox files ====================///
+      controller.setTotalDownloading(name: "Syncing libraries");
       // Start from the app's folder in Dropbox (root folder for 'calTablet')
       var result =
           await Dropbox.listFolder(""); // Access the base 'calTablet' directory
       FolderListModel folderListModel = FolderListModel.fromJson(result);
-
       // Check if the folder listing was successful
       if (!folderListModel.success) {
         // If Dropbox call fails, disable user authorization and show an error
         await SharedPref.storeUserAuthorization(false);
+        controller.setErrorSyncResponseProgress();
         showToast(message: folderListModel.message ?? "", isError: true);
         return false;
       } else {
-        final authorFolders = folderListModel.paths;
-        List<FolderFilePath> allFolder = [];
-        for (var authorFolder in authorFolders) {
-          allFolder.add(FolderFilePath(
-            pathDisplay: authorFolder['pathDisplay'],
-            name: authorFolder['name'],
-            pathLower: authorFolder['pathLower'],
-          ));
-        }
-        List<FolderFilePath>? selectedFolders =
-            await showDialog<List<FolderFilePath>>(
-          context: navKey.currentContext!,
-          builder: (BuildContext context) {
-            return FolderSelectionDialog(folders: allFolder);
-          },
-        );
-
-        if (selectedFolders != null) {
-          await syncLibrariesFormDropboxFolder(selectedFolders);
+        List<FolderFilePath>? storedFolder =
+            await SharedPref.getSelectedLibraries();
+        if (storedFolder.isEmpty) {
+          final dropboxFolders = folderListModel.paths;
+          List<FolderFilePath> allFolder = [];
+          for (var dropboxFolder in dropboxFolders) {
+            allFolder.add(FolderFilePath(
+              pathDisplay: dropboxFolder['pathDisplay'],
+              name: dropboxFolder['name'],
+              pathLower: dropboxFolder['pathLower'],
+            ));
+          }
+          List<FolderFilePath>? selectedFolders =
+              await showDialog<List<FolderFilePath>>(
+            context: navKey.currentContext!,
+            builder: (BuildContext context) {
+              return FolderSelectionDialog(folders: allFolder);
+            },
+          );
+          if (selectedFolders != null) {
+            await SharedPref.storeSelectedLibraries(selectedFolders);
+            await syncLibrariesFormDropboxFolder(controller, selectedFolders);
+          }
+        } else {
+          await syncLibrariesFormDropboxFolder(controller, storedFolder);
         }
       }
       return true;
     } catch (e) {
+      controller.setErrorSyncResponseProgress();
       // Catch and log any errors that occur during the sync process
       print('Error syncing with Dropbox: $e');
       showToast(message: 'Error syncing with Dropbox: $e', isError: true);
@@ -137,16 +147,26 @@ class DropboxService {
   }
 
   Future<bool> syncLibrariesFormDropboxFolder(
-      List<FolderFilePath> librariesFolders) async {
+      HomeController controller, List<FolderFilePath> librariesFolders) async {
     try {
-      // HomeController homeController = Get.put(HomeController());
       /// Application directory changed to local directory
       final dir = await SharedPref.getLocalFolderPath;
 
       // final totalLibraries = authorFolders.length;
       // int downloadedLibrariesCount = 0; // Track the number of books downloaded
       // homeController.setTotalDownloading(totalLibraries);
-      for (var librariesFolder in librariesFolders) {
+
+      // for (var librariesFolder in librariesFolders) {
+
+      for (int i = 0; i < librariesFolders.length; i++) {
+        var librariesFolder = librariesFolders[i];
+
+        ///================ Download libraries  ===================///
+        controller.setTotalLibrariesDownloading(
+            items: librariesFolders.length,
+            name: "Downloading ..... ${librariesFolder.name}");
+        controller.setDownloadingLibrariesProgress(i);
+
         // List the contents (books) of the current author folder
         var librariesResult =
             await Dropbox.listFolder(librariesFolder.pathLower!);
@@ -157,7 +177,17 @@ class DropboxService {
 
         final libraries = librariesPath.paths;
         // Iterate through each author folder
-        for (var authorFolder in libraries) {
+        // for (var authorFolder in libraries) {
+        for (int i = 0; i < libraries.length; i++) {
+          var authorFolder = libraries[i];
+
+          print("Authors :$authorFolder");
+
+          ///================ Download Single libraries  ===================///
+          controller.setTotalAuthorsDownloading(
+              items: libraries.length,
+              name: "Downloading ..... ${authorFolder["name"]}");
+          controller.setDownloadingAuthorsProgress(i);
           // List the contents (books) of the current author folder
           var bookResult = await Dropbox.listFolder(authorFolder['pathLower']);
           FolderListModel booksPath = FolderListModel.fromJson(bookResult);
@@ -168,7 +198,16 @@ class DropboxService {
           final books = booksPath.paths;
 
           // Iterate through each book folder
-          for (var bookFolder in books) {
+          // for (var bookFolder in books) {
+
+          for (int i = 0; i < books.length; i++) {
+            var bookFolder = books[i];
+
+            ///================ Download Single libraries  ===================///
+            controller.setTotalBooksDownloading(
+                items: books.length,
+                name: "Downloading ..... ${bookFolder["name"]}");
+            controller.setDownloadingBooksProgress(i);
             var bookFilesResult =
                 await Dropbox.listFolder(bookFolder['pathLower']);
             FolderListModel booksFilesPath =
@@ -214,21 +253,22 @@ class DropboxService {
                   '${dynamicDir.path}/${opfPath.split('/').last}';
 
               // Check if the book already exists in the database based on the OPF file
-              /// bool existsInDB = await db.isFileInDatabase(localOpfPath);
-              /// if (existsInDB) {
-              ///   // If the book is already in the database, skip downloading it
-              ///   print('Book already exists in the database. Skipping download.');
-              ///   continue;
-              /// }
-              ///
-
               bool existsInDB = await db.isFileInDatabase(localOpfPath);
               if (existsInDB) {
-                // Remove entry from database
-                await db.deleteFileByPath(localOpfPath);
+                // If the book is already in the database, skip downloading it
                 print(
-                    'Book already exists in the database. Deleting old entry.');
+                    'Book already exists in the database. Skipping download.');
+                continue;
               }
+
+              // bool existsInDB = await db.isFileInDatabase(localOpfPath);
+              // if (existsInDB) {
+              //   print('Book already exists in the database. Skip to download');
+              //   continue;
+              // Remove entry from database
+              // await db.deleteFileByPath(localOpfPath);
+              //  print('Book already exists in the database. Deleting old entry.');
+              // }
 
               // Check if files already exist and delete them before downloading new ones
               if (await File(localCoverPath).exists()) {
@@ -267,139 +307,6 @@ class DropboxService {
       return false; // Return false if an error occurs
     }
   }
-
-  // Future<bool> syncDropboxFiles() async {
-  //    HomeController homeController = Get.put(HomeController());
-  //    try {
-  //      // Start from the app's folder in Dropbox (root folder for 'calTablet')
-  //      var result = await Dropbox.listFolder(""); // Access the base 'calTablet' directory
-  //      FolderListModel folderListModel = FolderListModel.fromJson(result);
-  //
-  //      // Check if the folder listing was successful
-  //      if (!folderListModel.success) {
-  //        // If Dropbox call fails, disable user authorization and show an error
-  //        await SharedPref.storeUserAuthorization(false);
-  //        showToast(message: folderListModel.message ?? "", isError: true);
-  //        return false;
-  //      }
-  //
-  //      // Get the list of author folders from Dropbox
-  //      final authorFolders = folderListModel.paths;
-  //      // Get the application's document directory to store files locally
-  //      if (authorFolders.length == 0) {
-  //        showToast(message: "No Calibre libraries found", isError: false);
-  //      }
-  //
-  //      /// Application directory changed to local directory
-  //      final dir = await SharedPref.getLocalFolderPath;
-  //      // final dir = await getApplicationDocumentsDirectory();
-  //      final totalBook = folderListModel.paths.length;
-  //      int downloadedBooksCount = 0; // Track the number of books downloaded
-  //      homeController.setTotalDownloading(totalBook);
-  //      // Iterate through each author folder
-  //      for (var authorFolder in authorFolders) {
-  //        // List the contents (books) of the current author folder
-  //        var bookResult = await Dropbox.listFolder(authorFolder['pathLower']);
-  //        FolderListModel booksPath = FolderListModel.fromJson(bookResult);
-  //
-  //        // Skip this folder if there was an error in listing its contents
-  //        if (!booksPath.success) continue;
-  //
-  //        // Get the list of book folders under the current author folder
-  //        final books = booksPath.paths;
-  //
-  //        // Iterate through each book folder
-  //        for (var bookFolder in books) {
-  //          // if (downloadedBooksCount >= 5) {
-  //          //   // Stop downloading if 2 books have already been downloaded
-  //          //   print('Limit of 2 books reached. Stopping further downloads.');
-  //          //   return true;
-  //          // }
-  //          // List the contents (files) of the current book folder
-  //          var bookFilesResult =
-  //              await Dropbox.listFolder(bookFolder['pathLower']);
-  //          FolderListModel booksFilesPath =
-  //              FolderListModel.fromJson(bookFilesResult);
-  //
-  //          // Skip if there was an error in listing the book's files
-  //          if (!booksFilesPath.success) continue;
-  //
-  //          // Initialize file paths for cover, EPUB, and OPF metadata
-  //          String? coverPath, epubPath, opfPath;
-  //
-  //          // Iterate through the files in the book folder to find specific file types
-  //          for (var file in booksFilesPath.paths) {
-  //            String fileName = file['name'];
-  //            String filePath = file['pathLower'];
-  //
-  //            // Check and assign file paths based on their extensions
-  //            if (fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
-  //              coverPath = filePath; // Assign cover image path
-  //            } else if (fileName.endsWith('.epub')) {
-  //              epubPath = filePath; // Assign EPUB file path
-  //            } else if (fileName.endsWith('.opf')) {
-  //              opfPath = filePath; // Assign OPF metadata file path
-  //            }
-  //          }
-  //
-  //          // Proceed only if all required files (cover, EPUB, OPF) are found
-  //          if (coverPath != null && epubPath != null && opfPath != null) {
-  //            // Create the local directory path where book files will be stored
-  //            /// Application directory changed to local directory
-  //            // final dynamicDirPath = '${dir.path}/${authorFolder['name']}/${bookFolder['name']}';
-  //            final dynamicDirPath =
-  //                '$dir/${authorFolder['name']}/${bookFolder['name']}';
-  //            final dynamicDir = Directory(dynamicDirPath);
-  //            // Ensure the directory exists, create it if it doesn't
-  //            if (!await dynamicDir.exists()) {
-  //              await dynamicDir.create(recursive: true);
-  //            }
-  //            // Generate local paths for cover, EPUB, and OPF files
-  //            String localCoverPath =
-  //                '${dynamicDir.path}/${coverPath.split('/').last}';
-  //            String localEpubPath =
-  //                '${dynamicDir.path}/${epubPath.split('/').last}';
-  //            String localOpfPath =
-  //                '${dynamicDir.path}/${opfPath.split('/').last}';
-  //
-  //            // Check if the book already exists in the database based on the OPF file
-  //            bool existsInDB = await db.isFileInDatabase(localOpfPath);
-  //            if (existsInDB) {
-  //              downloadedBooksCount++;
-  //              homeController.setDownloadingProgress(downloadedBooksCount);
-  //              // If the book is already in the database, skip downloading it
-  //              print('Book already exists in the database. Skipping download.');
-  //              continue;
-  //            }
-  //
-  //            // Download the cover, EPUB, and OPF files in parallel using Future.wait()
-  //            await Future.wait([
-  //              downloadFile(coverPath, localCoverPath),
-  //              downloadFile(epubPath, localEpubPath),
-  //              downloadFile(opfPath, localOpfPath),
-  //            ]);
-  //
-  //            // Once files are downloaded, extract metadata from the OPF file and store it in the database
-  //            await extractAndStoreMetadataFromOFP(
-  //                localCoverPath, localEpubPath, localOpfPath);
-  //
-  //            // Increment the counter for downloaded books
-  //            downloadedBooksCount++;
-  //            homeController.setDownloadingProgress(downloadedBooksCount);
-  //          }
-  //        }
-  //      }
-  //
-  //      // Return true indicating a successful sync
-  //      return true;
-  //    } catch (e) {
-  //      // Catch and log any errors that occur during the sync process
-  //      print('Error syncing with Dropbox: $e');
-  //      showToast(message: 'Error syncing with Dropbox: $e', isError: true);
-  //      return false; // Return false if an error occurs
-  //    }
-  //  }
-  //
 
   Future<void> downloadFile(String filePath, String localPath) async {
     final result = await Dropbox.download(filePath, localPath);
@@ -563,85 +470,4 @@ class DropboxService {
       print('Error extracting metadata from OPF: $e');
     }
   }
-
-  // Future<bool?> updateReadStatusInOPF(String opfPath, bool readStatus) async {
-  //   try {
-  //     final file = File(opfPath);
-  //     if (await file.exists()) {
-  //       String opfContent = await file.readAsString();
-  //
-  //       // Parse the OPF content as XML
-  //       final document = XmlDocument.parse(opfContent);
-  //
-  //       // Find the meta tag for read_status or create it if it doesn't exist
-  //       var readStatusMeta = document.findAllElements('meta').where((meta) {
-  //         return meta.getAttribute('name') ==
-  //             'calibre:user_metadata:#read_status';
-  //       }).firstOrNull;
-  //
-  //       if (readStatusMeta != null) {
-  //         // Update the content attribute for read_status
-  //         readStatusMeta.setAttribute('content', readStatus ? 'true' : 'false');
-  //       } else {
-  //         // If the meta tag for read_status doesn't exist, create one
-  //         final metadata = document.findAllElements('metadata').firstOrNull;
-  //         if (metadata != null) {
-  //           metadata.children.add(XmlElement(
-  //             XmlName('meta'),
-  //             [
-  //               XmlAttribute(
-  //                   XmlName('name'), 'calibre:user_metadata:#read_status'),
-  //               XmlAttribute(XmlName('content'), readStatus ? 'true' : 'false'),
-  //             ],
-  //           ));
-  //         }
-  //       }
-  //
-  //       // Save the updated OPF content back to the file
-  //       await file.writeAsString(document.toXmlString(pretty: true));
-  //       print('OPF file updated successfully.');
-  //       return true;
-  //     } else {
-  //       print('OPF file not found at: $opfPath');
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     print('Error updating OPF file: $e');
-  //     return false;
-  //   }
-  // }
-
-  // Future<bool?> uploadFileToDropbox(
-  //     String localFilePath, String dropboxFilePath) async {
-  //   try {
-  //     // Upload the updated OPF file to Dropbox
-  //     File file = File(localFilePath);
-  //     final result = await Dropbox.upload(file.path, dropboxFilePath);
-  //     BaseModel baseModel = BaseModel.fromJson(result);
-  //     if (baseModel.success == true) {
-  //       print('file updated successfully in Dropbox:  ${baseModel.message}');
-  //       // showToast(
-  //       //     message: baseModel.message ?? "File Updated Successfully",
-  //       //     isError: false);
-  //       return true;
-  //     } else {
-  //       print('Error File update: ${baseModel.message}');
-  //       // showToast(
-  //       //     message: baseModel.message ?? "File Updated Error", isError: true);
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     print('Error uploading file to Dropbox: $e');
-  //     return false;
-  //   }
-  // }
-  //
-  // Future<void> updateReadStatusAndUpload(
-  //     String localOpfPath, String dropboxOpfPath, bool readStatus) async {
-  //   // Step 1: Update the OPF file locally
-  //   await updateReadStatusInOPF(localOpfPath, readStatus);
-  //
-  //   // Step 2: Upload the updated OPF file to Dropbox
-  //   await uploadFileToDropbox(localOpfPath, dropboxOpfPath);
-  // }
 }

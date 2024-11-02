@@ -110,14 +110,19 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                           fontStyle: FontStyle.italic,
                                           fontFamily: AppStyle.helveticaBold),
                                   SizedBox(
-                                    height: height * 0.05,
+                                    height: height * 0.04,
                                   ),
-                                  (file.description ?? " ").toText(
-                                      maxLine: 19,
-                                      color: AppColor.whitePrimary,
-                                      fontSize: 36,
-                                      fontFamily: AppStyle.helveticaRegular,
-                                      lineHeight: 1.3)
+                                  SizedBox(
+                                      height: height * 0.48,
+                                      child: SingleChildScrollView(
+                                          child: (file.description ?? " ")
+                                              .toText(
+                                                  maxLine: 500,
+                                                  color: AppColor.whitePrimary,
+                                                  fontSize: 36,
+                                                  fontFamily:
+                                                      AppStyle.helveticaRegular,
+                                                  lineHeight: 1.3))),
                                 ],
                               ).paddingSymmetric(vertical: height * 0.001),
                               Container(

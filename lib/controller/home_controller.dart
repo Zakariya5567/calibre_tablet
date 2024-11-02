@@ -17,16 +17,58 @@ class HomeController extends GetxController {
   String selectedSort = "title"; // Default to showing all books
   String selectedOrderBy = "ascending"; // Default sort order
 
-  int totalBook = 0;
-  int progress = 0;
+  String? syncName;
 
-  setTotalDownloading(int books) {
-    totalBook = books;
+  setTotalDownloading({required String? name}) {
+    syncName = name;
     update();
   }
 
-  setDownloadingProgress(int count) {
-    progress = count;
+  /// Libraries downloading progress;
+  int? totalLibrariesItems;
+  String? itemLibrariesName;
+  int? librariesProgress;
+
+  setTotalLibrariesDownloading({required int? items, required String? name}) {
+    itemLibrariesName = name;
+    totalLibrariesItems = items;
+    update();
+  }
+
+  setDownloadingLibrariesProgress(int count) {
+    librariesProgress = count;
+    update();
+  }
+
+  /// Authors downloading progress;
+  int? totalAuthorsItems;
+  String? itemAuthorsName;
+  int? authorsProgress;
+
+  setTotalAuthorsDownloading({required int? items, required String? name}) {
+    itemAuthorsName = name;
+    totalAuthorsItems = items;
+    update();
+  }
+
+  setDownloadingAuthorsProgress(int count) {
+    authorsProgress = count;
+    update();
+  }
+
+  /// Books downloading progress;
+  int? totalBooksItems;
+  String? itemBooksName;
+  int? booksProgress;
+
+  setTotalBooksDownloading({required int? items, required String? name}) {
+    itemBooksName = name;
+    totalBooksItems = items;
+    update();
+  }
+
+  setDownloadingBooksProgress(int count) {
+    booksProgress = count;
     update();
   }
 
@@ -82,6 +124,23 @@ class HomeController extends GetxController {
     update();
   }
 
+  setErrorSyncResponseProgress() {
+    syncName = null;
+
+    totalLibrariesItems = null;
+    itemLibrariesName = null;
+    librariesProgress = null;
+
+    totalAuthorsItems = null;
+    itemAuthorsName = null;
+    authorsProgress = null;
+
+    totalBooksItems = null;
+    itemBooksName = null;
+    booksProgress = null;
+    update();
+  }
+
   Future<void> getServices() async {
     bool? isGranted = await requestManageExternalStoragePermission();
     if (isGranted == false) {
@@ -95,9 +154,6 @@ class HomeController extends GetxController {
       return;
     }
 
-    totalBook = 0;
-    progress = 0;
-    update();
     final hasInternet = await checkInternet();
     if (!hasInternet) return;
 
@@ -238,7 +294,6 @@ class HomeController extends GetxController {
 
   Future<void> fetchAllFiles() async {
     files = [];
-
     // Fetch files with the selected filter and sorting
     files = await databaseHelper.fetchFilesFromDatabase(
       filterByStatus: selectedFiler, // Filter by read/unread/all
