@@ -221,10 +221,10 @@ class DetailFooter extends StatelessWidget {
         ),
         isRead == true
             ? Icon(
-                Icons.done,
+                subtitle == "1" ? Icons.done : Icons.close,
                 color: subtitle == "1"
                     ? AppColor.greenPrimary
-                    : AppColor.blackPrimary,
+                    : AppColor.whitePrimary,
               )
             : subtitle.toText(
                 color: AppColor.whitePrimary,
