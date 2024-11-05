@@ -52,7 +52,7 @@ class DropboxService {
 
   Future<bool?> authorize() async {
     final result = await Dropbox.authorize();
-    await Future.delayed(const Duration(seconds: 15));
+    await Future.delayed(Duration.zero);
     final BaseModel baseModel = BaseModel.fromJson(result);
     if (baseModel.success == true) {
       return baseModel.success;

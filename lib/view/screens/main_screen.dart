@@ -173,7 +173,7 @@ class _MainScreenState extends State<MainScreen> {
                                             fontWeight: AppStyle.w500,
                                             color: AppColor.whitePrimary,
                                           ),
-                                          " ${controller.totalLibrariesItems.toString()} / ${controller.librariesProgress.toString()}"
+                                          "${controller.librariesProgress.toString()} /  ${controller.totalLibrariesItems.toString()}"
                                               .toText(
                                             textAlign: TextAlign.center,
                                             fontSize: 36,
@@ -201,7 +201,7 @@ class _MainScreenState extends State<MainScreen> {
                                             fontWeight: AppStyle.w500,
                                             color: AppColor.whitePrimary,
                                           ),
-                                          " ${controller.totalAuthorsItems.toString()} / ${controller.authorsProgress.toString()}"
+                                          "${controller.authorsProgress.toString()} / ${controller.totalAuthorsItems.toString()}"
                                               .toText(
                                             textAlign: TextAlign.center,
                                             fontSize: 36,
@@ -229,7 +229,7 @@ class _MainScreenState extends State<MainScreen> {
                                             fontWeight: AppStyle.w500,
                                             color: AppColor.whitePrimary,
                                           ),
-                                          " ${controller.totalBooksItems.toString()} / ${controller.booksProgress.toString()}"
+                                          "${controller.booksProgress.toString()} / ${controller.totalBooksItems.toString()}"
                                               .toText(
                                             textAlign: TextAlign.center,
                                             fontSize: 36,
