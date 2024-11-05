@@ -7,21 +7,16 @@ import 'package:calibre_tablet/models/AccessToken_model.dart';
 import 'package:calibre_tablet/models/authorizeWithAccessToken_model.dart';
 import 'package:calibre_tablet/models/base_model.dart';
 import 'package:calibre_tablet/models/folder_list_model.dart';
-import 'package:calibre_tablet/models/libraries_path_model.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:dropbox_client/dropbox_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'package:xml/xml.dart';
 import '../helper/shared_preferences.dart';
 import '../models/dropbox_config.dart';
 import 'package:get/get.dart';
-
-import '../models/folder_item.dart';
 import '../view/widgets/folder_selection_dialog.dart';
 
 class DropboxService {
@@ -52,7 +47,7 @@ class DropboxService {
 
   Future<bool?> authorize() async {
     final result = await Dropbox.authorize();
-    await Future.delayed(Duration.zero);
+    await Future.delayed(Duration(seconds: 5));
     final BaseModel baseModel = BaseModel.fromJson(result);
     if (baseModel.success == true) {
       return baseModel.success;

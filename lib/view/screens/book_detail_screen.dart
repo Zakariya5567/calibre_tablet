@@ -220,12 +220,12 @@ class DetailFooter extends StatelessWidget {
           height: height * 0.005,
         ),
         isRead == true
-            ? Icon(
-                subtitle == "1" ? Icons.done : Icons.close,
+            ? Icon(subtitle == "1" ? Icons.done : Icons.close,
                 color: subtitle == "1"
                     ? AppColor.greenPrimary
-                    : AppColor.whitePrimary,
-              )
+                    : subtitle == "0"
+                        ? AppColor.redPrimary
+                        : AppColor.blackPrimary)
             : subtitle.toText(
                 color: AppColor.whitePrimary,
                 fontSize: 28,
