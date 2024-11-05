@@ -173,7 +173,7 @@ class _MainScreenState extends State<MainScreen> {
                                             fontWeight: AppStyle.w500,
                                             color: AppColor.whitePrimary,
                                           ),
-                                          "${controller.librariesProgress.toString()} /  ${controller.totalLibrariesItems.toString()}"
+                                          "  ${controller.librariesProgress.toString()} /  ${controller.totalLibrariesItems.toString()}"
                                               .toText(
                                             textAlign: TextAlign.center,
                                             fontSize: 36,
@@ -201,7 +201,7 @@ class _MainScreenState extends State<MainScreen> {
                                             fontWeight: AppStyle.w500,
                                             color: AppColor.whitePrimary,
                                           ),
-                                          "${controller.authorsProgress.toString()} / ${controller.totalAuthorsItems.toString()}"
+                                          "  ${controller.authorsProgress.toString()} / ${controller.totalAuthorsItems.toString()}"
                                               .toText(
                                             textAlign: TextAlign.center,
                                             fontSize: 36,
@@ -229,7 +229,7 @@ class _MainScreenState extends State<MainScreen> {
                                             fontWeight: AppStyle.w500,
                                             color: AppColor.whitePrimary,
                                           ),
-                                          "${controller.booksProgress.toString()} / ${controller.totalBooksItems.toString()}"
+                                          "  ${controller.booksProgress.toString()} / ${controller.totalBooksItems.toString()}"
                                               .toText(
                                             textAlign: TextAlign.center,
                                             fontSize: 36,
@@ -240,6 +240,30 @@ class _MainScreenState extends State<MainScreen> {
                                           )
                                         ],
                                       ).paddingOnly(bottom: 10.h),
+
+                                controller.totalAuthorsItems == null
+                                    ? SizedBox()
+                                    : LinearProgressIndicator(
+                                        backgroundColor:
+                                            AppColor.whiteSecondary,
+                                        color: AppColor.greenPrimary,
+                                        value: controller.totalAuthorsItems! > 0
+                                            ? controller.authorsProgress! /
+                                                controller.totalAuthorsItems!
+                                            : 0,
+                                        minHeight: 15.h,
+                                      ).paddingSymmetric(
+                                        horizontal: 50.w, vertical: 10.h),
+                                controller.totalAuthorsItems == null
+                                    ? const SizedBox()
+                                    : Text(
+                                        'Downloading: ${(controller.authorsProgress! / controller.totalAuthorsItems! * 100).toStringAsFixed(0)}%',
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: AppStyle.helveticaBold,
+                                            color: AppColor.whitePrimary),
+                                      ),
                               ],
                             ),
                           )

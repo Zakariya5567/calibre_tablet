@@ -261,25 +261,15 @@ class DropboxService {
                 continue;
               }
 
-              // bool existsInDB = await db.isFileInDatabase(localOpfPath);
-              // if (existsInDB) {
-              //   print('Book already exists in the database. Skip to download');
-              //   continue;
-              // Remove entry from database
-              // await db.deleteFileByPath(localOpfPath);
-              //  print('Book already exists in the database. Deleting old entry.');
-              // }
-
               // Check if files already exist and delete them before downloading new ones
-              if (await File(localCoverPath).exists()) {
-                await File(localCoverPath).delete();
-              }
-              if (await File(localEpubPath).exists()) {
-                await File(localEpubPath).delete();
-              }
-              if (await File(localOpfPath).exists()) {
-                await File(localOpfPath).delete();
-              }
+              await Future.wait([
+                if (await File(localCoverPath).exists())
+                  File(localCoverPath).delete(),
+                if (await File(localEpubPath).exists())
+                  File(localEpubPath).delete(),
+                if (await File(localOpfPath).exists())
+                  File(localOpfPath).delete(),
+              ]);
 
               // Download the cover, EPUB, and OPF files in parallel using Future.wait()
               await Future.wait([
