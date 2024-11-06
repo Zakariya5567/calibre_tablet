@@ -57,20 +57,20 @@ class HomeController extends GetxController {
   }
 
   /// Books downloading progress;
-  int? totalBooksItems;
-  String? itemBooksName;
-  int? booksProgress;
-
-  setTotalBooksDownloading({required int? items, required String? name}) {
-    itemBooksName = name;
-    totalBooksItems = items;
-    update();
-  }
-
-  setDownloadingBooksProgress(int count) {
-    booksProgress = count;
-    update();
-  }
+  // int? totalBooksItems;
+  // String? itemBooksName;
+  // int? booksProgress;
+  //
+  // setTotalBooksDownloading({required int? items, required String? name}) {
+  //   itemBooksName = name;
+  //   totalBooksItems = items;
+  //   update();
+  // }
+  //
+  // setDownloadingBooksProgress(int count) {
+  //   booksProgress = count;
+  //   update();
+  // }
 
   int currentPage = 0;
   setPageIndex(index) async {
@@ -133,10 +133,10 @@ class HomeController extends GetxController {
     totalAuthorsItems = null;
     itemAuthorsName = null;
     authorsProgress = null;
-
-    totalBooksItems = null;
-    itemBooksName = null;
-    booksProgress = null;
+    //
+    // totalBooksItems = null;
+    // itemBooksName = null;
+    // booksProgress = null;
     update();
   }
 

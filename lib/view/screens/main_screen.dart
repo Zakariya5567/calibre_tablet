@@ -184,62 +184,62 @@ class _MainScreenState extends State<MainScreen> {
                                           ),
                                         ],
                                       ).paddingOnly(bottom: 10.h),
+                                //
+                                // /// Authors
+                                // controller.itemAuthorsName == null
+                                //     ? const SizedBox()
+                                //     : Row(
+                                //         mainAxisAlignment:
+                                //             MainAxisAlignment.center,
+                                //         children: [
+                                //           (controller.itemAuthorsName ?? "")
+                                //               .toText(
+                                //             textAlign: TextAlign.center,
+                                //             fontSize: 36,
+                                //             fontFamily:
+                                //                 AppStyle.helveticaMedium,
+                                //             fontWeight: AppStyle.w500,
+                                //             color: AppColor.whitePrimary,
+                                //           ),
+                                //           "  ${controller.authorsProgress.toString()} / ${controller.totalAuthorsItems.toString()}"
+                                //               .toText(
+                                //             textAlign: TextAlign.center,
+                                //             fontSize: 36,
+                                //             fontFamily:
+                                //                 AppStyle.helveticaMedium,
+                                //             fontWeight: AppStyle.w500,
+                                //             color: AppColor.whitePrimary,
+                                //           )
+                                //         ],
+                                //       ).paddingOnly(bottom: 10.h),
 
-                                /// Authors
-                                controller.itemAuthorsName == null
-                                    ? const SizedBox()
-                                    : Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          (controller.itemAuthorsName ?? "")
-                                              .toText(
-                                            textAlign: TextAlign.center,
-                                            fontSize: 36,
-                                            fontFamily:
-                                                AppStyle.helveticaMedium,
-                                            fontWeight: AppStyle.w500,
-                                            color: AppColor.whitePrimary,
-                                          ),
-                                          "  ${controller.authorsProgress.toString()} / ${controller.totalAuthorsItems.toString()}"
-                                              .toText(
-                                            textAlign: TextAlign.center,
-                                            fontSize: 36,
-                                            fontFamily:
-                                                AppStyle.helveticaMedium,
-                                            fontWeight: AppStyle.w500,
-                                            color: AppColor.whitePrimary,
-                                          )
-                                        ],
-                                      ).paddingOnly(bottom: 10.h),
-
-                                ///BOOKS
-                                controller.itemBooksName == null
-                                    ? const SizedBox()
-                                    : Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          (controller.itemBooksName ?? "")
-                                              .toText(
-                                            textAlign: TextAlign.center,
-                                            fontSize: 36,
-                                            fontFamily:
-                                                AppStyle.helveticaMedium,
-                                            fontWeight: AppStyle.w500,
-                                            color: AppColor.whitePrimary,
-                                          ),
-                                          "  ${controller.booksProgress.toString()} / ${controller.totalBooksItems.toString()}"
-                                              .toText(
-                                            textAlign: TextAlign.center,
-                                            fontSize: 36,
-                                            fontFamily:
-                                                AppStyle.helveticaMedium,
-                                            fontWeight: AppStyle.w500,
-                                            color: AppColor.whitePrimary,
-                                          )
-                                        ],
-                                      ).paddingOnly(bottom: 10.h),
+                                // ///BOOKS
+                                // controller.itemBooksName == null
+                                //     ? const SizedBox()
+                                //     : Row(
+                                //         mainAxisAlignment:
+                                //             MainAxisAlignment.center,
+                                //         children: [
+                                //           (controller.itemBooksName ?? "")
+                                //               .toText(
+                                //             textAlign: TextAlign.center,
+                                //             fontSize: 36,
+                                //             fontFamily:
+                                //                 AppStyle.helveticaMedium,
+                                //             fontWeight: AppStyle.w500,
+                                //             color: AppColor.whitePrimary,
+                                //           ),
+                                //           "  ${controller.booksProgress.toString()} / ${controller.totalBooksItems.toString()}"
+                                //               .toText(
+                                //             textAlign: TextAlign.center,
+                                //             fontSize: 36,
+                                //             fontFamily:
+                                //                 AppStyle.helveticaMedium,
+                                //             fontWeight: AppStyle.w500,
+                                //             color: AppColor.whitePrimary,
+                                //           )
+                                //         ],
+                                //       ).paddingOnly(bottom: 10.h),
 
                                 controller.totalAuthorsItems == null
                                     ? SizedBox()

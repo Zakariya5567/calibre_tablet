@@ -152,152 +152,127 @@ class DropboxService {
   Future<bool> syncLibrariesFormDropboxFolder(
       HomeController controller, List<FolderFilePath> librariesFolders) async {
     try {
-      /// Application directory changed to local directory
       final dir = await SharedPref.getLocalFolderPath;
-
-      // final totalLibraries = authorFolders.length;
-      // int downloadedLibrariesCount = 0; // Track the number of books downloaded
-      // homeController.setTotalDownloading(totalLibraries);
-
-      // for (var librariesFolder in librariesFolders) {
 
       for (int i = 0; i < librariesFolders.length; i++) {
         var librariesFolder = librariesFolders[i];
 
-        ///================ Download libraries  ===================///
         controller.setTotalLibrariesDownloading(
             items: librariesFolders.length,
             name: "Downloading ..... ${librariesFolder.name}");
         controller.setDownloadingLibrariesProgress(i);
 
-        // List the contents (books) of the current author folder
         var librariesResult =
             await Dropbox.listFolder(librariesFolder.pathLower!);
         FolderListModel librariesPath =
             FolderListModel.fromJson(librariesResult);
-        // Skip this folder if there was an error in listing its contents
         if (!librariesPath.success) continue;
 
         final libraries = librariesPath.paths;
-        // Iterate through each author folder
-        // for (var authorFolder in libraries) {
-        for (int i = 0; i < libraries.length; i++) {
-          var authorFolder = libraries[i];
 
-          print("Authors :$authorFolder");
+        for (int j = 0; j < libraries.length; j++) {
+          var authorFolder = libraries[j];
 
-          ///================ Download Single libraries  ===================///
           controller.setTotalAuthorsDownloading(
               items: libraries.length,
               name: "Downloading ..... ${authorFolder["name"]}");
-          controller.setDownloadingAuthorsProgress(i);
-          // List the contents (books) of the current author folder
+          controller.setDownloadingAuthorsProgress(j);
+
           var bookResult = await Dropbox.listFolder(authorFolder['pathLower']);
           FolderListModel booksPath = FolderListModel.fromJson(bookResult);
-          // Skip this folder if there was an error in listing its contents
           if (!booksPath.success) continue;
 
-          // Get the list of book folders under the current author folder
           final books = booksPath.paths;
 
-          // Iterate through each book folder
-          // for (var bookFolder in books) {
-
-          for (int i = 0; i < books.length; i++) {
-            var bookFolder = books[i];
-
-            ///================ Download Single libraries  ===================///
-            controller.setTotalBooksDownloading(
-                items: books.length,
-                name: "Downloading ..... ${bookFolder["name"]}");
-            controller.setDownloadingBooksProgress(i);
-            var bookFilesResult =
-                await Dropbox.listFolder(bookFolder['pathLower']);
-            FolderListModel booksFilesPath =
-                FolderListModel.fromJson(bookFilesResult);
-            // Skip if there was an error in listing the book's files
-            if (!booksFilesPath.success) continue;
-
-            // Initialize file paths for cover, EPUB, and OPF metadata
-            String? coverPath, epubPath, opfPath;
-
-            // Iterate through the files in the book folder to find specific file types
-            for (var file in booksFilesPath.paths) {
-              String fileName = file['name'];
-              String filePath = file['pathLower'];
-
-              // Check and assign file paths based on their extensions
-              if (fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
-                coverPath = filePath; // Assign cover image path
-              } else if (fileName.endsWith('.epub')) {
-                epubPath = filePath; // Assign EPUB file path
-              } else if (fileName.endsWith('.opf')) {
-                opfPath = filePath; // Assign OPF metadata file path
-              }
-            }
-
-            // Proceed only if all required files (cover, EPUB, OPF) are found
-            if (coverPath != null && epubPath != null && opfPath != null) {
-              // Create the local directory path where book files will be stored
-              /// Application directory changed to local directory
-              final dynamicDirPath =
-                  '$dir/${authorFolder["name"]}/${bookFolder['name']}';
-              final dynamicDir = Directory(dynamicDirPath);
-              // Ensure the directory exists, create it if it doesn't
-              if (!await dynamicDir.exists()) {
-                await dynamicDir.create(recursive: true);
-              }
-              // Generate local paths for cover, EPUB, and OPF files
-              String localCoverPath =
-                  '${dynamicDir.path}/${coverPath.split('/').last}';
-              String localEpubPath =
-                  '${dynamicDir.path}/${epubPath.split('/').last}';
-              String localOpfPath =
-                  '${dynamicDir.path}/${opfPath.split('/').last}';
-
-              // Check if the book already exists in the database based on the OPF file
-              bool existsInDB = await db.isFileInDatabase(localOpfPath);
-              if (existsInDB) {
-                // If the book is already in the database, skip downloading it
-                print(
-                    'Book already exists in the database. Skipping download.');
-                continue;
-              }
-
-              // Check if files already exist and delete them before downloading new ones
-              await Future.wait([
-                if (await File(localCoverPath).exists())
-                  File(localCoverPath).delete(),
-                if (await File(localEpubPath).exists())
-                  File(localEpubPath).delete(),
-                if (await File(localOpfPath).exists())
-                  File(localOpfPath).delete(),
-              ]);
-
-              // Download the cover, EPUB, and OPF files in parallel using Future.wait()
-              await Future.wait([
-                downloadFile(coverPath, localCoverPath),
-                downloadFile(epubPath, localEpubPath),
-                downloadFile(opfPath, localOpfPath),
-              ]);
-
-              // Once files are downloaded, extract metadata from the OPF file and store it in the database
-              await extractAndStoreMetadataFromOFP(
-                  localCoverPath, localEpubPath, localOpfPath);
-
-              // Increment the counter for downloaded books
-            }
-          }
-          // downloadedLibrariesCount++;
-          // homeController.setDownloadingProgress(downloadedLibrariesCount);
+          // Download all books of this author in parallel, with a batch size of 3
+          await _downloadBooksInBatches(books, authorFolder, dir, controller);
         }
       }
       return true;
     } catch (e) {
-      // Catch and log any errors that occur during the sync process
       print('Error syncing with Dropbox: $e');
       showToast(message: 'Error syncing with Dropbox: $e', isError: true);
-      return false; // Return false if an error occurs
+      return false;
+    }
+  }
+
+  Future<void> _downloadBooksInBatches(List<dynamic> books,
+      dynamic authorFolder, String? dir, HomeController controller) async {
+    const int batchSize = 5;
+    List<List<dynamic>> batches = _splitIntoBatches(books, batchSize);
+
+    for (List<dynamic> batch in batches) {
+      // Process the current batch in parallel
+      await Future.wait(batch.map((bookFolder) {
+        return _downloadBook(bookFolder, authorFolder, dir, controller);
+      }).toList());
+
+      // Optional: Add a delay between batches to avoid overwhelming the server or network
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+  }
+
+  List<List<dynamic>> _splitIntoBatches(List<dynamic> items, int batchSize) {
+    List<List<dynamic>> batches = [];
+    for (int i = 0; i < items.length; i += batchSize) {
+      batches.add(items.sublist(
+          i, i + batchSize > items.length ? items.length : i + batchSize));
+    }
+    return batches;
+  }
+
+  Future<void> _downloadBook(dynamic bookFolder, dynamic authorFolder,
+      String? dir, HomeController controller) async {
+    var bookFilesResult = await Dropbox.listFolder(bookFolder['pathLower']);
+    FolderListModel booksFilesPath = FolderListModel.fromJson(bookFilesResult);
+    if (!booksFilesPath.success) return;
+
+    String? coverPath, epubPath, opfPath;
+
+    for (var file in booksFilesPath.paths) {
+      String fileName = file['name'];
+      String filePath = file['pathLower'];
+
+      if (fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
+        coverPath = filePath;
+      } else if (fileName.endsWith('.epub')) {
+        epubPath = filePath;
+      } else if (fileName.endsWith('.opf')) {
+        opfPath = filePath;
+      }
+    }
+
+    if (coverPath != null && epubPath != null && opfPath != null) {
+      final dynamicDirPath =
+          '$dir/${authorFolder["name"]}/${bookFolder['name']}';
+      final dynamicDir = Directory(dynamicDirPath);
+      if (!await dynamicDir.exists()) {
+        await dynamicDir.create(recursive: true);
+      }
+
+      String localCoverPath = '${dynamicDir.path}/${coverPath.split('/').last}';
+      String localEpubPath = '${dynamicDir.path}/${epubPath.split('/').last}';
+      String localOpfPath = '${dynamicDir.path}/${opfPath.split('/').last}';
+
+      bool existsInDB = await db.isFileInDatabase(localOpfPath);
+      if (existsInDB) return;
+
+      // Delete files in parallel
+      await Future.wait([
+        if (await File(localCoverPath).exists()) File(localCoverPath).delete(),
+        if (await File(localEpubPath).exists()) File(localEpubPath).delete(),
+        if (await File(localOpfPath).exists()) File(localOpfPath).delete(),
+      ]);
+
+      // Download files in parallel
+      await Future.wait([
+        downloadFile(coverPath, localCoverPath),
+        downloadFile(epubPath, localEpubPath),
+        downloadFile(opfPath, localOpfPath),
+      ]);
+
+      await extractAndStoreMetadataFromOFP(
+          localCoverPath, localEpubPath, localOpfPath);
     }
   }
 
