@@ -160,8 +160,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                             height: height,
                                             width: width,
                                             title: "Read Status",
-                                            subtitle:
-                                                file.readStatus ?? "Unread",
+                                            subtitle: file.readStatus ?? "2",
                                             isRead: true),
                                         //),
                                       ],

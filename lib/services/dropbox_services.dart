@@ -46,8 +46,12 @@ class DropboxService {
   }
 
   Future<bool?> authorize() async {
+    HomeController controller = Get.put(HomeController());
+    controller.setTotalDownloading(name: "Connecting Dropbox .....");
     final result = await Dropbox.authorize();
-    await Future.delayed(Duration(seconds: 5));
+
+    ///================== First time to get dropbox files ====================///
+    await Future.delayed(const Duration(seconds: 10));
     final BaseModel baseModel = BaseModel.fromJson(result);
     if (baseModel.success == true) {
       return baseModel.success;
@@ -89,9 +93,10 @@ class DropboxService {
 
   Future<bool> syncDropboxFiles() async {
     HomeController controller = Get.put(HomeController());
+    controller.setTotalDownloading(name: "Connecting Dropbox .....");
     try {
       ///================== First time to get dropbox files ====================///
-      controller.setTotalDownloading(name: "Syncing libraries");
+      // controller.setTotalDownloading(name: "Syncing libraries");
       // Start from the app's folder in Dropbox (root folder for 'calTablet')
       var result =
           await Dropbox.listFolder(""); // Access the base 'calTablet' directory
@@ -116,6 +121,7 @@ class DropboxService {
               pathLower: dropboxFolder['pathLower'],
             ));
           }
+          controller.setTotalDownloading(name: null);
           List<FolderFilePath>? selectedFolders =
               await showDialog<List<FolderFilePath>>(
             context: navKey.currentContext!,
@@ -128,11 +134,13 @@ class DropboxService {
             await syncLibrariesFormDropboxFolder(controller, selectedFolders);
           }
         } else {
+          controller.setTotalDownloading(name: null);
           await syncLibrariesFormDropboxFolder(controller, storedFolder);
         }
       }
       return true;
     } catch (e) {
+      controller.setTotalDownloading(name: null);
       controller.setErrorSyncResponseProgress();
       // Catch and log any errors that occur during the sync process
       print('Error syncing with Dropbox: $e');
@@ -357,7 +365,7 @@ class DropboxService {
               'calibre:user_metadata:#read_status';
         }).firstOrNull; // Safely handle if not found
 
-        String readStatus = '0'; // Default to '0' if not found
+        String readStatus = '2'; // Default to '0' if not found
 
         if (readStatusMeta != null) {
           final content = readStatusMeta.getAttribute('content');
@@ -368,14 +376,26 @@ class DropboxService {
             if (decodedContent is Map &&
                 decodedContent.containsKey('#value#')) {
               // If it contains '#value#' key, check its value
-              readStatus = decodedContent['#value#'] == true ? '1' : '0';
+              readStatus = decodedContent['#value#'] == true
+                  ? '1'
+                  : decodedContent['#value#'] == false
+                      ? '0'
+                      : "2";
             } else {
               // Handle simple 'true'/'false' values
-              readStatus = content == 'true' ? '1' : '0';
+              readStatus = content == 'true'
+                  ? '1'
+                  : content == 'false'
+                      ? '0'
+                      : '2';
             }
           } catch (e) {
             // If parsing fails, fall back to checking for simple 'true'/'false'
-            readStatus = content == 'true' ? '1' : '0';
+            readStatus = content == 'true'
+                ? '1'
+                : content == 'false'
+                    ? '0'
+                    : '2';
           }
         }
 

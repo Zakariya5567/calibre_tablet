@@ -150,7 +150,7 @@ class _MainScreenState extends State<MainScreen> {
                                     : (controller.syncName ?? "")
                                         .toText(
                                           textAlign: TextAlign.center,
-                                          fontSize: 52,
+                                          fontSize: 42,
                                           fontFamily: AppStyle.helveticaMedium,
                                           fontWeight: AppStyle.w500,
                                           color: AppColor.whitePrimary,

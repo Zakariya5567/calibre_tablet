@@ -126,7 +126,6 @@ class HomeController extends GetxController {
 
   setErrorSyncResponseProgress() {
     syncName = null;
-
     totalLibrariesItems = null;
     itemLibrariesName = null;
     librariesProgress = null;
@@ -176,6 +175,7 @@ class HomeController extends GetxController {
     } catch (e) {
       handleError(e);
     } finally {
+      setTotalDownloading(name: null);
       setLoading(false);
     }
   }
@@ -188,6 +188,7 @@ class HomeController extends GetxController {
         await SharedPref.storeAccessToken(token);
         await authenticateWithAccessTokenAndSync();
       } else {
+        setTotalDownloading(name: null);
         throw Exception("Failed to retrieve access token");
       }
     } catch (e) {
@@ -268,6 +269,7 @@ class HomeController extends GetxController {
 
   void handleError(e) {
     SharedPref.storeUserAuthorization(false);
+    setTotalDownloading(name: null);
     showToast(
       message: "Something Went Wrong: $e. Please try again later",
       isError: true,
@@ -276,6 +278,7 @@ class HomeController extends GetxController {
 
   void showAuthorizationError() {
     SharedPref.storeUserAuthorization(false);
+    setTotalDownloading(name: null);
     showToast(
       message: "Authorization Error: Please authorize with Dropbox",
       isError: true,
@@ -284,6 +287,7 @@ class HomeController extends GetxController {
 
   void showSyncError() {
     SharedPref.storeUserAuthorization(false);
+    setTotalDownloading(name: null);
     showToast(
       message: "Error syncing with Dropbox",
       isError: true,
