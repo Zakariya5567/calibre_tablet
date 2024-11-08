@@ -51,7 +51,7 @@ class DropboxService {
     final result = await Dropbox.authorize();
 
     ///================== First time to get dropbox files ====================///
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 5));
     final BaseModel baseModel = BaseModel.fromJson(result);
     if (baseModel.success == true) {
       return baseModel.success;
