@@ -197,7 +197,8 @@ class DropboxService {
 
   Future<void> _downloadBooksInBatches(List<dynamic> books,
       dynamic authorFolder, String? dir, HomeController controller) async {
-    const int batchSize = 5;
+    //Parallel download size
+    const int batchSize = 10;
     List<List<dynamic>> batches = _splitIntoBatches(books, batchSize);
 
     for (List<dynamic> batch in batches) {
@@ -207,7 +208,7 @@ class DropboxService {
       }).toList());
 
       // Optional: Add a delay between batches to avoid overwhelming the server or network
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 
