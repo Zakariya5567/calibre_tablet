@@ -1,5 +1,4 @@
 import 'package:calibre_tablet/controller/home_controller.dart';
-import 'package:calibre_tablet/models/file_model.dart';
 import 'package:calibre_tablet/utils/colors.dart';
 import 'package:calibre_tablet/utils/icons.dart';
 import 'package:calibre_tablet/utils/style.dart';

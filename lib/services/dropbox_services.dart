@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:calibre_tablet/controller/home_controller.dart';
 import 'package:calibre_tablet/helper/database_helper.dart';
 import 'package:calibre_tablet/main.dart';
@@ -254,8 +253,9 @@ class DropboxService {
       String localEpubPath = '${dynamicDir.path}/${epubPath.split('/').last}';
       String localOpfPath = '${dynamicDir.path}/${opfPath.split('/').last}';
 
-      bool existsInDB = await db.isFileInDatabase(localOpfPath);
-      if (existsInDB) return;
+      //If file already exist in the library  skipped download
+      // bool existsInDB = await db.isFileInDatabase(localOpfPath);
+      // if (existsInDB) return;
 
       // Delete files in parallel
       await Future.wait([
