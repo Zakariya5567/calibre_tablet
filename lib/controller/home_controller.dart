@@ -56,22 +56,6 @@ class HomeController extends GetxController {
     update();
   }
 
-  /// Books downloading progress;
-  // int? totalBooksItems;
-  // String? itemBooksName;
-  // int? booksProgress;
-  //
-  // setTotalBooksDownloading({required int? items, required String? name}) {
-  //   itemBooksName = name;
-  //   totalBooksItems = items;
-  //   update();
-  // }
-  //
-  // setDownloadingBooksProgress(int count) {
-  //   booksProgress = count;
-  //   update();
-  // }
-
   int currentPage = 0;
   setPageIndex(index) async {
     currentPage = index;
@@ -133,14 +117,11 @@ class HomeController extends GetxController {
     totalAuthorsItems = null;
     itemAuthorsName = null;
     authorsProgress = null;
-    //
-    // totalBooksItems = null;
-    // itemBooksName = null;
-    // booksProgress = null;
     update();
   }
 
   Future<void> getServices() async {
+    setErrorSyncResponseProgress();
     bool? isGranted = await requestManageExternalStoragePermission();
     if (isGranted == false) {
       showToast(message: "Storage Permission denied", isError: true);

@@ -128,6 +128,13 @@ class _MainScreenState extends State<MainScreen> {
                         )
                       ],
                     )),
+                // floatingActionButton: FloatingActionButton(
+                //     child: Icon(Icons.clear),
+                //     onPressed: () {
+                //       setState(() {
+                //         db.clearDatabase();
+                //       });
+                //     }),
                 body: homeController.isLoading == true
                     ? Stack(
                         children: [
@@ -138,91 +145,78 @@ class _MainScreenState extends State<MainScreen> {
                           const BookGridShimmer(),
                           SizedBox(
                             width: width,
-                            child: SizedBox(
-                                child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                // Logo of the Error that no data found
+                            child: Container(
+                                    color: Colors.transparent,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        // Logo of the Error that no data found
 
-                                /// Sync progress
-                                controller.syncName == null
-                                    ? const SizedBox()
-                                    : (controller.syncName ?? "")
-                                        .toText(
-                                          textAlign: TextAlign.center,
-                                          fontSize: 20,
-                                          fontFamily: AppStyle.helveticaMedium,
-                                          fontWeight: AppStyle.w500,
-                                          color: AppColor.whitePrimary,
-                                        )
-                                        .paddingOnly(bottom: 10.h),
+                                        /// Sync progress
+                                        controller.syncName == null
+                                            ? const SizedBox()
+                                            : (controller.syncName ?? "")
+                                                .toText(
+                                                  textAlign: TextAlign.center,
+                                                  fontSize: 42,
+                                                  fontFamily:
+                                                      AppStyle.helveticaMedium,
+                                                  fontWeight: AppStyle.w500,
+                                                  color: AppColor.whitePrimary,
+                                                )
+                                                .paddingOnly(bottom: 10.h),
 
-                                // /// Download progress
-                                // controller.itemLibrariesName == null
-                                //     ? const SizedBox()
-                                //     : Row(
-                                //         mainAxisAlignment:
-                                //             MainAxisAlignment.center,
-                                //         children: [
-                                //           (controller.itemLibrariesName ?? "")
-                                //               .toText(
-                                //             textAlign: TextAlign.center,
-                                //             fontSize: 36,
-                                //             fontFamily:
-                                //                 AppStyle.helveticaMedium,
-                                //             fontWeight: AppStyle.w500,
-                                //             color: AppColor.whitePrimary,
-                                //           ),
-                                //           "  ${controller.librariesProgress.toString()} /  ${controller.totalLibrariesItems.toString()}"
-                                //               .toText(
-                                //             textAlign: TextAlign.center,
-                                //             fontSize: 36,
-                                //             fontFamily:
-                                //                 AppStyle.helveticaMedium,
-                                //             fontWeight: AppStyle.w500,
-                                //             color: AppColor.whitePrimary,
-                                //           ),
-                                //         ],
-                                //       ).paddingOnly(bottom: 10.h),
+                                        controller.totalAuthorsItems == null
+                                            ? const SizedBox()
+                                            : const Text(
+                                                'Syncing libraries ...',
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily:
+                                                        AppStyle.helveticaBold,
+                                                    color:
+                                                        AppColor.whitePrimary),
+                                              ).paddingOnly(bottom: 20.h),
 
-                                controller.totalAuthorsItems == null
-                                    ? const SizedBox()
-                                    : const Text(
-                                        'Syncing libraries ...',
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: AppStyle.helveticaBold,
-                                            color: AppColor.whitePrimary),
-                                      ).paddingOnly(bottom: 20.h),
+                                        controller.totalAuthorsItems == null
+                                            ? const SizedBox()
+                                            : Text(
+                                                '${(controller.authorsProgress! / controller.totalAuthorsItems! * 100).toStringAsFixed(0)}%',
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily:
+                                                        AppStyle.helveticaBold,
+                                                    color:
+                                                        AppColor.whitePrimary),
+                                              ).paddingOnly(bottom: 20.h),
 
-                                controller.totalAuthorsItems == null
-                                    ? const SizedBox()
-                                    : Text(
-                                        '${(controller.authorsProgress ?? 0 / (controller.totalAuthorsItems ?? 0) * 100).toStringAsFixed(0)}%',
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: AppStyle.helveticaBold,
-                                            color: AppColor.whitePrimary),
-                                      ).paddingOnly(bottom: 20.h),
-
-                                controller.totalAuthorsItems == null
-                                    ? const SizedBox()
-                                    : LinearProgressIndicator(
-                                        backgroundColor:
-                                            AppColor.shimmerBaseColor,
-                                        color: AppColor.whitePrimary,
-                                        value: controller.totalAuthorsItems! > 0
-                                            ? controller.authorsProgress! /
-                                                controller.totalAuthorsItems!
-                                            : 0,
-                                        minHeight: 25.h,
-                                      ).paddingSymmetric(
-                                        horizontal: 50.w, vertical: 10.h),
-                              ],
-                            )).paddingSymmetric(horizontal: 900.w),
+                                        controller.totalAuthorsItems == null
+                                            ? const SizedBox()
+                                            : LinearProgressIndicator(
+                                                backgroundColor:
+                                                    AppColor.shimmerBaseColor,
+                                                color: AppColor.whitePrimary,
+                                                value: controller
+                                                            .totalAuthorsItems! >
+                                                        0
+                                                    ? controller
+                                                            .authorsProgress! /
+                                                        controller
+                                                            .totalAuthorsItems!
+                                                    : 0,
+                                                minHeight: 25.h,
+                                              ).paddingSymmetric(
+                                                horizontal: 50.w,
+                                                vertical: 10.h),
+                                      ],
+                                    ))
+                                .paddingSymmetric(
+                                    horizontal: 900.w, vertical: 600.h),
                           )
                         ],
                       )

@@ -8,7 +8,6 @@ import 'package:calibre_tablet/models/base_model.dart';
 import 'package:calibre_tablet/models/folder_list_model.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:dropbox_client/dropbox_client.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
@@ -153,13 +152,13 @@ class DropboxService {
     try {
       final dir = await SharedPref.getLocalFolderPath;
 
-      for (int i = 0; i < librariesFolders.length; i++) {
-        var librariesFolder = librariesFolders[i];
+      for (int lib = 0; lib < librariesFolders.length; lib++) {
+        var librariesFolder = librariesFolders[lib];
 
         controller.setTotalLibrariesDownloading(
             items: librariesFolders.length,
             name: "Downloading ..... ${librariesFolder.name}");
-        controller.setDownloadingLibrariesProgress(i);
+        controller.setDownloadingLibrariesProgress(lib);
 
         var librariesResult =
             await Dropbox.listFolder(librariesFolder.pathLower!);
@@ -169,13 +168,12 @@ class DropboxService {
 
         final libraries = librariesPath.paths;
 
-        for (int j = 0; j < libraries.length; j++) {
-          var authorFolder = libraries[j];
-
+        for (int auth = 0; auth < libraries.length; auth++) {
+          var authorFolder = libraries[auth];
           controller.setTotalAuthorsDownloading(
               items: libraries.length,
               name: "Downloading ..... ${authorFolder["name"]}");
-          controller.setDownloadingAuthorsProgress(j);
+          controller.setDownloadingAuthorsProgress(auth);
 
           var bookResult = await Dropbox.listFolder(authorFolder['pathLower']);
           FolderListModel booksPath = FolderListModel.fromJson(bookResult);
@@ -257,6 +255,14 @@ class DropboxService {
       //If file already exist in the library  skipped download
       // bool existsInDB = await db.isFileInDatabase(localOpfPath);
       // if (existsInDB) return;
+
+      //If file already exist in the library  delete it and  reDownload
+      bool existsInDB = await db.isFileInDatabase(localOpfPath);
+      if (existsInDB) {
+        // Remove entry from database
+        await db.deleteFileByPath(localOpfPath);
+        print('Book already exists in the database. Deleting old entry.');
+      }
 
       // Delete files in parallel
       await Future.wait([
