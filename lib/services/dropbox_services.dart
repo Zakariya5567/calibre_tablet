@@ -149,6 +149,7 @@ class DropboxService {
 
   Future<bool> syncLibrariesFormDropboxFolder(
       HomeController controller, List<FolderFilePath> librariesFolders) async {
+    await db.clearDatabase();
     try {
       final dir = await SharedPref.getLocalFolderPath;
 
