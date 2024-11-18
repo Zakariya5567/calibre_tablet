@@ -150,6 +150,7 @@ class DropboxService {
   Future<bool> syncLibrariesFormDropboxFolder(
       HomeController controller, List<FolderFilePath> librariesFolders) async {
     await db.clearDatabase();
+    await clearFilesInCustomDirectory();
     try {
       final dir = await SharedPref.getLocalFolderPath;
 
@@ -297,6 +298,47 @@ class DropboxService {
     }
   }
 
+  Future<void> clearFilesInCustomDirectory() async {
+    try {
+      // Retrieve the stored directory path
+      final directoryPath = await SharedPref.getLocalFolderPath;
+
+      if (directoryPath == null || directoryPath.isEmpty) {
+        print("Directory path is not available.");
+        return;
+      }
+
+      // Create a directory object with the retrieved path
+      final directory = Directory(directoryPath);
+
+      // Check if the directory exists
+      if (!await directory.exists()) {
+        print("Directory does not exist.");
+        return;
+      }
+
+      // List all files and directories within this path
+      final files = directory.listSync();
+
+      // Delete each file and directory
+      for (var file in files) {
+        try {
+          if (file is File) {
+            await file.delete(); // Delete file
+          } else if (file is Directory) {
+            await file.delete(
+                recursive: true); // Delete directory and its contents
+          }
+        } catch (e) {
+          print("Error deleting file or directory: $e");
+        }
+      }
+      print("Custom directory cleared successfully.");
+    } catch (e) {
+      print("Error clearing custom directory: $e");
+    }
+  }
+
   Future<String?> extractAndStoreMetadataFromOFP(
       String coverPath, String epubPath, String opfPath) async {
     try {
@@ -337,7 +379,7 @@ class DropboxService {
             : 'No description available';
 
         // Clean up the description by removing any HTML tags
-        description = description.replaceAll(RegExp(r'<[^>]*>'), '');
+        // description = description.replaceAll(RegExp(r'<[^>]*>'), '');
 
         // Extract published date
         final publishedDate = document.findAllElements('dc:date').single.text;

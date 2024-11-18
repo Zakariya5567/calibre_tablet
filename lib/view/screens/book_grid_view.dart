@@ -5,6 +5,7 @@ import 'package:calibre_tablet/utils/style.dart';
 import 'package:calibre_tablet/view/screens/book_detail_screen.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'dart:io';
 import 'package:get/get.dart';
 
@@ -65,45 +66,89 @@ class BookGridView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(
-                              width: width * 0.18,
-                              child: (file.title ?? "").toText(
-                                  color: AppColor.whitePrimary,
-                                  fontSize: 30,
-                                  maxLine: 2,
-                                  fontFamily: AppStyle.helveticaMedium,
-                                  fontWeight: AppStyle.w400),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SizedBox(
+                                  width: width * 0.18,
+                                  child: (file.title ?? "").toText(
+                                      color: AppColor.whitePrimary,
+                                      fontSize: 30,
+                                      maxLine: 2,
+                                      fontFamily: AppStyle.helveticaMedium,
+                                      fontWeight: AppStyle.w400),
+                                ),
+                                (file.readStatus != null &&
+                                        file.readStatus == "1")
+                                    ? Icon(
+                                        size: height * 0.027,
+                                        Icons.check_circle_outline_outlined,
+                                        color: AppColor.greenPrimary,
+                                      )
+                                    : const SizedBox(
+                                        width: 30,
+                                      )
+                              ],
                             ),
-                            (file.readStatus != null && file.readStatus == "1")
-                                ? Icon(
-                                    size: height * 0.027,
-                                    Icons.check_circle_outline_outlined,
-                                    color: AppColor.greenPrimary,
-                                  )
-                                : const SizedBox(
-                                    width: 30,
-                                  )
+                            SizedBox(height: height * 0.003),
+                            (file.author ?? "").toText(
+                                color: AppColor.whiteSecondary,
+                                fontSize: 22,
+                                maxLine: 2,
+                                fontFamily: AppStyle.helveticaMedium,
+                                fontWeight: AppStyle.w500),
                           ],
+                        ).paddingSymmetric(
+                          horizontal: width * 0.01,
                         ),
                         SizedBox(height: height * 0.003),
-                        (file.author ?? "").toText(
-                            color: AppColor.whiteSecondary,
-                            fontSize: 22,
-                            maxLine: 2,
-                            fontFamily: AppStyle.helveticaMedium,
-                            fontWeight: AppStyle.w500),
-                        SizedBox(height: height * 0.015),
-                        (file.description ?? " ").toText(
-                            color: AppColor.whiteSecondary,
-                            fontSize: 22,
-                            fontFamily: AppStyle.helveticaRegular,
-                            maxLine: 8),
+
+                        ///-===============
+                        SizedBox(
+                            height: height * 0.147,
+                            child: SingleChildScrollView(
+                              physics: NeverScrollableScrollPhysics(),
+                              child: Html(
+                                data: file.description ??
+                                    "No description available",
+                                style: {
+                                  "html": Style(
+                                      color: AppColor.whiteSecondary,
+                                      fontFamily: AppStyle.helveticaRegular,
+                                      fontSize: FontSize(10)),
+                                  "b": Style(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColor.whiteSecondary,
+                                      fontFamily: AppStyle.helveticaRegular,
+                                      fontSize: FontSize(10)),
+                                  "i": Style(
+                                      fontStyle: FontStyle.italic,
+                                      color: AppColor.whiteSecondary,
+                                      fontFamily: AppStyle.helveticaRegular,
+                                      fontSize: FontSize(10)),
+                                  "u": Style(
+                                      textDecoration: TextDecoration.underline,
+                                      color: AppColor.whiteSecondary,
+                                      fontFamily: AppStyle.helveticaRegular,
+                                      fontSize: FontSize(10)),
+                                },
+                              ).paddingSymmetric(
+                                horizontal: width * 0.005,
+                              ),
+                            ))
+
+                        ///-===============
+                        // (file.description ?? " ").toText(
+                        //     color: AppColor.whiteSecondary,
+                        //     fontSize: 22,
+                        //     fontFamily: AppStyle.helveticaRegular,
+                        //     maxLine: 8),
                       ],
-                    ).paddingSymmetric(
-                        horizontal: width * 0.01, vertical: height * 0.005),
+                    ).paddingSymmetric(vertical: height * 0.005),
                   )
                 ],
               ),

@@ -5,6 +5,7 @@ import 'package:calibre_tablet/services/external_reader.dart';
 import 'package:calibre_tablet/view/widgets/extention/string_extension.dart';
 import 'package:calibre_tablet/view/widgets/extention/widget_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import '../../utils/colors.dart';
 import '../../utils/icons.dart';
@@ -113,16 +114,55 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                     height: height * 0.04,
                                   ),
                                   SizedBox(
-                                      height: height * 0.48,
-                                      child: SingleChildScrollView(
-                                          child: (file.description ?? " ")
-                                              .toText(
-                                                  maxLine: 500,
-                                                  color: AppColor.whitePrimary,
-                                                  fontSize: 36,
-                                                  fontFamily:
-                                                      AppStyle.helveticaRegular,
-                                                  lineHeight: 1.3))),
+                                    height: height * 0.48,
+                                    child: SingleChildScrollView(
+                                      child: Html(
+                                        data: file.description ??
+                                            "No description available",
+                                        style: {
+                                          "html": Style(
+                                              color: AppColor.whitePrimary,
+                                              fontFamily:
+                                                  AppStyle.helveticaRegular,
+                                              lineHeight: const LineHeight(1.3),
+                                              fontSize: FontSize(16)),
+                                          "b": Style(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColor.whitePrimary,
+                                              fontFamily:
+                                                  AppStyle.helveticaRegular,
+                                              lineHeight: const LineHeight(1.3),
+                                              fontSize: FontSize(16)),
+                                          "i": Style(
+                                              fontStyle: FontStyle.italic,
+                                              color: AppColor.whitePrimary,
+                                              fontFamily:
+                                                  AppStyle.helveticaRegular,
+                                              lineHeight: const LineHeight(1.3),
+                                              fontSize: FontSize(16)),
+                                          "u": Style(
+                                              textDecoration:
+                                                  TextDecoration.underline,
+                                              color: AppColor.whitePrimary,
+                                              fontFamily:
+                                                  AppStyle.helveticaRegular,
+                                              lineHeight: const LineHeight(1.3),
+                                              fontSize: FontSize(16)),
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  // SizedBox(
+                                  //     height: height * 0.18,
+                                  //     child: SingleChildScrollView(
+                                  //         child: (file.description ?? " ")
+                                  //             .toText(
+                                  //                 maxLine: 2,
+                                  //                 color: AppColor.whitePrimary,
+                                  //                 fontSize: 36,
+                                  //                 fontFamily:
+                                  //                     AppStyle.helveticaRegular,
+                                  //                 lineHeight: 1.3))),
                                 ],
                               ).paddingSymmetric(vertical: height * 0.001),
                               Container(
