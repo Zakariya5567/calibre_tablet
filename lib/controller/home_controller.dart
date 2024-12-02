@@ -120,37 +120,48 @@ class HomeController extends GetxController {
     update();
   }
 
+  // First Method to get services from dropbox
   Future<void> getServices() async {
     setErrorSyncResponseProgress();
+
+    // Allow Phone storage permission to download data
     bool? isGranted = await requestManageExternalStoragePermission();
     if (isGranted == false) {
       showToast(message: "Storage Permission denied", isError: true);
       return;
     }
 
+    // Select Folder in Internal storage
     String? selectedFolder = await selectFolder();
     if (selectedFolder == null) {
       showToast(message: "Storage Not Selected", isError: true);
       return;
     }
 
+    // Check internet connetion
     final hasInternet = await checkInternet();
     if (!hasInternet) return;
 
+    // Show Loading  and check user already LoggedIn Or Not.
     setLoading(true);
     bool? isAuthorized = await SharedPref.getUserAuthorization;
 
     try {
+      // Initialize Dropbox and check is Status True then will proceed next
       if (await dropboxService.initDropbox() != true) {
         setLoading(false);
         return;
       }
 
+      // Check if user already loggedIn or Not
       if (isAuthorized != true) {
+        // User is not authorize call Authorization to login user
         if (await dropboxService.authorize() == true) {
+          // User Authorize now  Process next
           await handleAuthorizationAndSync();
         }
       } else {
+        // User Already logged in now proceed Next.
         await authenticateWithAccessTokenAndSync();
       }
     } catch (e) {
@@ -186,16 +197,24 @@ class HomeController extends GetxController {
     }
 
     try {
+      // Authorize with access Token
       if (await dropboxService.authorizeWithAccessToken(token) == true) {
         SharedPref.storeUserAuthorization(true);
-
+        // Sync Files from dropbox
         if (await dropboxService.syncDropboxFiles() == true) {
           await fetchAllFiles();
         } else {
-          showSyncError();
+          SharedPref.storeUserAuthorization(false);
+          setTotalDownloading(name: null);
+          getServices();
+          // showSyncError();
         }
       } else {
-        showAuthorizationError();
+        SharedPref.storeUserAuthorization(false);
+        setTotalDownloading(name: null);
+        getServices();
+
+        // showAuthorizationError();
       }
     } catch (e) {
       handleError(e);

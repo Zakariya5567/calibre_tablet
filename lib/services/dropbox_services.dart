@@ -44,12 +44,15 @@ class DropboxService {
   }
 
   Future<bool?> authorize() async {
+    DropboxConfig dropboxConfig = await loadDropboxConfig();
+    String dropboxClientId = dropboxConfig.clientId;
     HomeController controller = Get.put(HomeController());
     controller.setTotalDownloading(name: "Connecting Dropbox .....");
-    final result = await Dropbox.authorize();
+    final result = await Dropbox.authorizePKCE(clientId: dropboxClientId);
+    // final result = await Dropbox.authorize(clientId: dropboxClientId);
 
     ///================== First time to get dropbox files ====================///
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 10));
     final BaseModel baseModel = BaseModel.fromJson(result);
     if (baseModel.success == true) {
       return baseModel.success;
@@ -81,10 +84,10 @@ class DropboxService {
     if (authorizeWithAccessTokenModel.success == true) {
       return authorizeWithAccessTokenModel.success;
     } else {
-      showToast(
-          message: authorizeWithAccessTokenModel.message ??
-              "Access Token Authorization error",
-          isError: true);
+      // showToast(
+      //     message: authorizeWithAccessTokenModel.message ??
+      //         "Access Token Authorization error",
+      //     isError: true);
       return authorizeWithAccessTokenModel.success;
     }
   }
@@ -104,7 +107,7 @@ class DropboxService {
         // If Dropbox call fails, disable user authorization and show an error
         await SharedPref.storeUserAuthorization(false);
         controller.setErrorSyncResponseProgress();
-        showToast(message: folderListModel.message ?? "", isError: true);
+        // showToast(message: folderListModel.message ?? "", isError: true);
         return false;
       } else {
         List<FolderFilePath>? storedFolder =
@@ -142,7 +145,7 @@ class DropboxService {
       controller.setErrorSyncResponseProgress();
       // Catch and log any errors that occur during the sync process
       print('Error syncing with Dropbox: $e');
-      showToast(message: 'Error syncing with Dropbox: $e', isError: true);
+      // showToast(message: 'Error syncing with Dropbox: $e', isError: true);
       return false; // Return false if an error occurs
     }
   }
