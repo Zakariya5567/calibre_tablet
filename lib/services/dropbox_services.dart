@@ -45,9 +45,12 @@ class DropboxService {
   }
 
   Future<bool?> authorize() async {
+    DropboxConfig dropboxConfig = await loadDropboxConfig();
+    String dropboxClientId = dropboxConfig.clientId;
     HomeController controller = Get.put(HomeController());
     controller.setTotalDownloading(name: "Connecting Dropbox .....");
-    final result = await Dropbox.authorize();
+    final result = await Dropbox.authorizePKCE(clientId: dropboxClientId);
+    //final result = await Dropbox.authorize();
 
     ///================== First time to get dropbox files ====================///
     await Future.delayed(const Duration(seconds: 10));
