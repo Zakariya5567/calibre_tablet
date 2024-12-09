@@ -2,96 +2,20 @@ import 'dart:convert';
 import 'package:calibre_tablet/controller/home_controller.dart';
 import 'package:calibre_tablet/helper/database_helper.dart';
 import 'package:calibre_tablet/main.dart';
-import 'package:calibre_tablet/models/AccessToken_model.dart';
-import 'package:calibre_tablet/models/authorizeWithAccessToken_model.dart';
-import 'package:calibre_tablet/models/base_model.dart';
 import 'package:calibre_tablet/models/folder_list_model.dart';
+import 'package:calibre_tablet/services/api_services.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
-import 'package:dropbox_client/dropbox_client.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:xml/xml.dart';
 import '../helper/shared_preferences.dart';
-import '../models/dropbox_config.dart';
 import 'package:get/get.dart';
 import '../view/widgets/folder_selection_dialog.dart';
-import 'package:http/http.dart' as http;
 
 class DropboxService {
   DatabaseHelper db = DatabaseHelper();
-
-  Future<bool?> initDropbox() async {
-    DropboxConfig dropboxConfig = await loadDropboxConfig();
-    String dropboxClientId = dropboxConfig.clientId;
-    String dropboxKey = dropboxConfig.key;
-    String dropboxSecret = dropboxConfig.secret;
-    try {
-      final result =
-          await Dropbox.init(dropboxClientId, dropboxKey, dropboxSecret);
-      BaseModel baseModel = BaseModel.fromJson(result);
-      if (baseModel.success == true) {
-        return baseModel.success;
-      } else {
-        showToast(
-            message: baseModel.message ?? "Dropbox initialization error",
-            isError: true);
-        return baseModel.success;
-      }
-    } catch (e) {
-      showToast(message: "Dropbox initialization error", isError: true);
-      return false;
-    }
-  }
-
-  Future<bool?> authorize() async {
-    DropboxConfig dropboxConfig = await loadDropboxConfig();
-    String dropboxClientId = dropboxConfig.clientId;
-    HomeController controller = Get.put(HomeController());
-    controller.setTotalDownloading(name: "Connecting Dropbox .....");
-    final result = await Dropbox.authorizePKCE(clientId: dropboxClientId);
-    //final result = await Dropbox.authorize();
-
-    ///================== First time to get dropbox files ====================///
-    await Future.delayed(const Duration(seconds: 10));
-    final BaseModel baseModel = BaseModel.fromJson(result);
-    if (baseModel.success == true) {
-      return baseModel.success;
-    } else {
-      showToast(
-          message: baseModel.message ?? "Authorization error", isError: true);
-      return baseModel.success;
-    }
-  }
-
-  Future<String?> getAccessToken() async {
-    var result = await Dropbox.getAccessToken();
-    AccessTokenModel accessTokenModel = AccessTokenModel.fromJson(result!);
-    if (accessTokenModel.success == true) {
-      return accessTokenModel.accessToken;
-    } else {
-      showToast(
-          message: accessTokenModel.message ?? "Access Token error",
-          isError: true);
-      return null;
-    }
-  }
-
-  Future<bool?> authorizeWithAccessToken(String token) async {
-    String accessToken = token;
-    final result = await Dropbox.authorizeWithAccessToken(accessToken);
-    AuthorizeWithAccessTokenModel authorizeWithAccessTokenModel =
-        AuthorizeWithAccessTokenModel.fromJson(result);
-    if (authorizeWithAccessTokenModel.success == true) {
-      return authorizeWithAccessTokenModel.success;
-    } else {
-      // showToast(
-      //     message: authorizeWithAccessTokenModel.message ??
-      //         "Access Token Authorization error",
-      //     isError: true);
-      return authorizeWithAccessTokenModel.success;
-    }
-  }
+  ApiServices apiServices = ApiServices();
 
   Future<bool> syncDropboxFiles() async {
     HomeController controller = Get.put(HomeController());
@@ -100,40 +24,51 @@ class DropboxService {
       ///================== First time to get dropbox files ====================///
       // controller.setTotalDownloading(name: "Syncing libraries");
       // Start from the app's folder in Dropbox (root folder for 'calTablet')
-      var result =
-          await Dropbox.listFolder(""); // Access the base 'calTablet' directory
-      FolderListModel folderListModel = FolderListModel.fromJson(result);
+      FolderListResponse result = await apiServices
+          .getFolderList(""); // Access the base 'calTablet' directory
       // Check if the folder listing was successful
-      if (!folderListModel.success) {
+      if (!result.success) {
         // If Dropbox call fails, disable user authorization and show an error
         await SharedPref.storeUserAuthorization(false);
         controller.setErrorSyncResponseProgress();
-        // showToast(message: folderListModel.message ?? "", isError: true);
+        if (result.refresh == true) {
+          bool refresh = await apiServices.refreshToken();
+          if (refresh == true) {
+            await syncDropboxFiles();
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
         return false;
       } else {
         List<FolderFilePath>? storedFolder =
             await SharedPref.getSelectedLibraries();
         if (storedFolder.isEmpty) {
-          final dropboxFolders = folderListModel.paths;
+          List<Entry>? dropboxFolders = result.folderListModel?.entries;
           List<FolderFilePath> allFolder = [];
-          for (var dropboxFolder in dropboxFolders) {
-            allFolder.add(FolderFilePath(
-              pathDisplay: dropboxFolder['pathDisplay'],
-              name: dropboxFolder['name'],
-              pathLower: dropboxFolder['pathLower'],
-            ));
-          }
-          controller.setTotalDownloading(name: null);
-          List<FolderFilePath>? selectedFolders =
-              await showDialog<List<FolderFilePath>>(
-            context: navKey.currentContext!,
-            builder: (BuildContext context) {
-              return FolderSelectionDialog(folders: allFolder);
-            },
-          );
-          if (selectedFolders != null) {
-            await SharedPref.storeSelectedLibraries(selectedFolders);
-            await syncLibrariesFormDropboxFolder(controller, selectedFolders);
+
+          if (dropboxFolders != null) {
+            for (var dropboxFolder in dropboxFolders) {
+              allFolder.add(FolderFilePath(
+                pathDisplay: dropboxFolder.pathDisplay,
+                name: dropboxFolder.name,
+                pathLower: dropboxFolder.pathLower,
+              ));
+            }
+            controller.setTotalDownloading(name: null);
+            List<FolderFilePath>? selectedFolders =
+                await showDialog<List<FolderFilePath>>(
+              context: navKey.currentContext!,
+              builder: (BuildContext context) {
+                return FolderSelectionDialog(folders: allFolder);
+              },
+            );
+            if (selectedFolders != null) {
+              await SharedPref.storeSelectedLibraries(selectedFolders);
+              await syncLibrariesFormDropboxFolder(controller, selectedFolders);
+            }
           }
         } else {
           controller.setTotalDownloading(name: null);
@@ -151,6 +86,8 @@ class DropboxService {
     }
   }
 
+  ///=======================================
+
   Future<bool> syncLibrariesFormDropboxFolder(
       HomeController controller, List<FolderFilePath> librariesFolders) async {
     await db.clearDatabase();
@@ -166,29 +103,32 @@ class DropboxService {
             name: "Downloading ..... ${librariesFolder.name}");
         controller.setDownloadingLibrariesProgress(lib);
 
-        var librariesResult =
-            await Dropbox.listFolder(librariesFolder.pathLower!);
-        FolderListModel librariesPath =
-            FolderListModel.fromJson(librariesResult);
-        if (!librariesPath.success) continue;
+        FolderListResponse librariesResult =
+            await apiServices.getFolderList(librariesFolder.pathLower!);
+        if (!librariesResult.success) continue;
 
-        final libraries = librariesPath.paths;
+        final libraries = librariesResult.folderListModel?.entries;
+        if (libraries != null) {
+          for (int auth = 0; auth < libraries.length; auth++) {
+            var authorFolder = libraries[auth];
+            controller.setTotalAuthorsDownloading(
+                items: libraries.length,
+                name: "Downloading ..... ${authorFolder.name}");
+            controller.setDownloadingAuthorsProgress(auth);
 
-        for (int auth = 0; auth < libraries.length; auth++) {
-          var authorFolder = libraries[auth];
-          controller.setTotalAuthorsDownloading(
-              items: libraries.length,
-              name: "Downloading ..... ${authorFolder["name"]}");
-          controller.setDownloadingAuthorsProgress(auth);
+            FolderListResponse bookResult =
+                await apiServices.getFolderList(authorFolder.pathLower!);
 
-          var bookResult = await Dropbox.listFolder(authorFolder['pathLower']);
-          FolderListModel booksPath = FolderListModel.fromJson(bookResult);
-          if (!booksPath.success) continue;
+            if (!bookResult.success) continue;
 
-          final books = booksPath.paths;
+            final books = bookResult.folderListModel?.entries;
 
-          // Download all books of this author in parallel, with a batch size of 3
-          await _downloadBooksInBatches(books, authorFolder, dir, controller);
+            // Download all books of this author in parallel, with a batch size of 3
+            if (books != null) {
+              await _downloadBooksInBatches(
+                  books, authorFolder, dir, controller);
+            }
+          }
         }
       }
       return true;
@@ -199,6 +139,7 @@ class DropboxService {
     }
   }
 
+  ///=======================================
   Future<void> _downloadBooksInBatches(List<dynamic> books,
       dynamic authorFolder, String? dir, HomeController controller) async {
     //Parallel download size
@@ -216,6 +157,7 @@ class DropboxService {
     }
   }
 
+  ///=======================================
   List<List<dynamic>> _splitIntoBatches(List<dynamic> items, int batchSize) {
     List<List<dynamic>> batches = [];
     for (int i = 0; i < items.length; i += batchSize) {
@@ -225,83 +167,78 @@ class DropboxService {
     return batches;
   }
 
+  ///=======================================
   Future<void> _downloadBook(dynamic bookFolder, dynamic authorFolder,
       String? dir, HomeController controller) async {
-    var bookFilesResult = await Dropbox.listFolder(bookFolder['pathLower']);
-    FolderListModel booksFilesPath = FolderListModel.fromJson(bookFilesResult);
-    if (!booksFilesPath.success) return;
+    FolderListResponse bookFilesResult =
+        await apiServices.getFolderList(bookFolder.pathLower!);
 
-    String? coverPath, epubPath, opfPath;
+    // var bookFilesResult = await Dropbox.listFolder(bookFolder['pathLower']);
+    // FolderListModel booksFilesPath = FolderListModel.fromJson(bookFilesResult);
+    if (!bookFilesResult.success) return;
 
-    for (var file in booksFilesPath.paths) {
-      String fileName = file['name'];
-      String filePath = file['pathLower'];
+    final files = bookFilesResult.folderListModel?.entries;
+    if (files != null) {
+      String? coverPath, epubPath, opfPath;
+      for (var file in files) {
+        String fileName = file.name ?? " ";
+        String filePath = file.pathLower ?? "";
 
-      if (fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
-        coverPath = filePath;
-      } else if (fileName.endsWith('.epub')) {
-        epubPath = filePath;
-      } else if (fileName.endsWith('.opf')) {
-        opfPath = filePath;
-      }
-    }
-
-    if (coverPath != null && epubPath != null && opfPath != null) {
-      final dynamicDirPath =
-          '$dir/${authorFolder["name"]}/${bookFolder['name']}';
-      final dynamicDir = Directory(dynamicDirPath);
-      if (!await dynamicDir.exists()) {
-        await dynamicDir.create(recursive: true);
+        if (fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
+          coverPath = filePath;
+        } else if (fileName.endsWith('.epub')) {
+          epubPath = filePath;
+        } else if (fileName.endsWith('.opf')) {
+          opfPath = filePath;
+        }
       }
 
-      String localCoverPath = '${dynamicDir.path}/${coverPath.split('/').last}';
-      String localEpubPath = '${dynamicDir.path}/${epubPath.split('/').last}';
-      String localOpfPath = '${dynamicDir.path}/${opfPath.split('/').last}';
+      if (coverPath != null && epubPath != null && opfPath != null) {
+        final dynamicDirPath = '$dir/${authorFolder.name}/${bookFolder.name}';
+        final dynamicDir = Directory(dynamicDirPath);
+        if (!await dynamicDir.exists()) {
+          await dynamicDir.create(recursive: true);
+        }
 
-      //If file already exist in the library  skipped download
-      // bool existsInDB = await db.isFileInDatabase(localOpfPath);
-      // if (existsInDB) return;
+        String localCoverPath =
+            '${dynamicDir.path}/${coverPath.split('/').last}';
+        String localEpubPath = '${dynamicDir.path}/${epubPath.split('/').last}';
+        String localOpfPath = '${dynamicDir.path}/${opfPath.split('/').last}';
 
-      //If file already exist in the library  delete it and  reDownload
-      bool existsInDB = await db.isFileInDatabase(localOpfPath);
-      if (existsInDB) {
-        // Remove entry from database
-        await db.deleteFileByPath(localOpfPath);
-        print('Book already exists in the database. Deleting old entry.');
+        //If file already exist in the library  skipped download
+        // bool existsInDB = await db.isFileInDatabase(localOpfPath);
+        // if (existsInDB) return;
+
+        //If file already exist in the library  delete it and  reDownload
+        bool existsInDB = await db.isFileInDatabase(localOpfPath);
+        if (existsInDB) {
+          // Remove entry from database
+          await db.deleteFileByPath(localOpfPath);
+          print('Book already exists in the database. Deleting old entry.');
+        }
+
+        // Delete files in parallel
+        await Future.wait([
+          if (await File(localCoverPath).exists())
+            File(localCoverPath).delete(),
+          if (await File(localEpubPath).exists()) File(localEpubPath).delete(),
+          if (await File(localOpfPath).exists()) File(localOpfPath).delete(),
+        ]);
+
+        // Download files in parallel
+        await Future.wait([
+          apiServices.downloadFile(coverPath, localCoverPath),
+          apiServices.downloadFile(epubPath, localEpubPath),
+          apiServices.downloadFile(opfPath, localOpfPath),
+        ]);
+
+        await extractAndStoreMetadataFromOFP(
+            localCoverPath, localEpubPath, localOpfPath);
       }
-
-      // Delete files in parallel
-      await Future.wait([
-        if (await File(localCoverPath).exists()) File(localCoverPath).delete(),
-        if (await File(localEpubPath).exists()) File(localEpubPath).delete(),
-        if (await File(localOpfPath).exists()) File(localOpfPath).delete(),
-      ]);
-
-      // Download files in parallel
-      await Future.wait([
-        downloadFile(coverPath, localCoverPath),
-        downloadFile(epubPath, localEpubPath),
-        downloadFile(opfPath, localOpfPath),
-      ]);
-
-      await extractAndStoreMetadataFromOFP(
-          localCoverPath, localEpubPath, localOpfPath);
     }
   }
 
-  Future<void> downloadFile(String filePath, String localPath) async {
-    final result = await Dropbox.download(filePath, localPath);
-    BaseModel download = BaseModel.fromJson(result);
-    if (download.success == true) {
-      // showToast(
-      //     message: download.message ?? "File download Successfully",
-      //     isError: false);
-    } else {
-      showToast(
-          message: download.message ?? "File download Error", isError: true);
-    }
-  }
-
+  ///=======================================
   Future<void> clearFilesInCustomDirectory() async {
     try {
       // Retrieve the stored directory path

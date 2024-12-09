@@ -1,18 +1,20 @@
-import 'package:calibre_tablet/helper/connection_checker.dart';
 import 'package:calibre_tablet/helper/database_helper.dart';
 import 'package:calibre_tablet/helper/shared_preferences.dart';
 import 'package:calibre_tablet/models/file_model.dart';
+import 'package:calibre_tablet/services/api_services.dart';
 import 'package:calibre_tablet/services/dropbox_services.dart';
+import 'package:calibre_tablet/view/screens/auth_screen.dart';
 import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
+import '../helper/connection_checker.dart';
 import '../helper/permission_helper.dart';
 
 class HomeController extends GetxController {
   DatabaseHelper databaseHelper = DatabaseHelper();
   DropboxService dropboxService = DropboxService();
-
+  ApiServices apiServices = ApiServices();
   String selectedFiler = "all"; // Default to showing all books
   String selectedSort = "title"; // Default to showing all books
   String selectedOrderBy = "ascending"; // Default sort order
@@ -120,6 +122,10 @@ class HomeController extends GetxController {
     update();
   }
 
+  // Future<void> getServices() async {
+  //   Get.to(DropboxAuthScreen());
+  // }
+
   // First Method to get services from dropbox
   Future<void> getServices() async {
     setErrorSyncResponseProgress();
@@ -138,7 +144,7 @@ class HomeController extends GetxController {
       return;
     }
 
-    // Check internet connetion
+    // Check internet connection
     final hasInternet = await checkInternet();
     if (!hasInternet) return;
 
@@ -146,106 +152,40 @@ class HomeController extends GetxController {
     setLoading(true);
     bool? isAuthorized = await SharedPref.getUserAuthorization;
 
-    try {
-      // Initialize Dropbox and check is Status True then will proceed next
-      if (await dropboxService.initDropbox() != true) {
-        setLoading(false);
-        return;
-      }
-
-      // Check if user already loggedIn or Not
-      if (isAuthorized != true) {
-        // User is not authorize call Authorization to login user
-        if (await dropboxService.authorize() == true) {
-          // User Authorize now  Process next
-          await handleAuthorizationAndSync();
-        }
-      } else {
-        // User Already logged in now proceed Next.
-        await authenticateWithAccessTokenAndSync();
-      }
-    } catch (e) {
-      handleError(e);
-    } finally {
-      setTotalDownloading(name: null);
-      setLoading(false);
-    }
-  }
-
-  Future<void> handleAuthorizationAndSync() async {
-    try {
-      String? token = await dropboxService.getAccessToken();
-      if (token != null) {
-        print("Access Token : $token");
-        await SharedPref.storeAccessToken(token);
-        await authenticateWithAccessTokenAndSync();
-      } else {
-        setTotalDownloading(name: null);
-        throw Exception("Failed to retrieve access token");
-      }
-    } catch (e) {
-      handleError(e);
+    // Check if user already loggedIn or Not
+    if (isAuthorized != true) {
+      await Get.to(DropboxAuthScreen());
+      await authenticateWithAccessTokenAndSync();
+    } else {
+      // User Already logged in now proceed Next.
+      await authenticateWithAccessTokenAndSync();
     }
   }
 
   Future<void> authenticateWithAccessTokenAndSync() async {
-    String? token = await SharedPref.getAccessToken;
-
-    if (token == null) {
-      showAuthorizationError();
-      return;
+    String? accessToken = await SharedPref.getAccessToken;
+    String? refToken = await SharedPref.getRefreshToken;
+    if (accessToken == null) {
+      await getServices();
+    } else if (refToken == null) {
+      bool refResult = await apiServices.refreshToken();
+      syncDropboxFilesFromApis(refResult);
+    } else {
+      syncDropboxFilesFromApis(true);
     }
+  }
 
-    try {
-      // Authorize with access Token
-      if (await dropboxService.authorizeWithAccessToken(token) == true) {
-        SharedPref.storeUserAuthorization(true);
-        // Sync Files from dropbox
-        if (await dropboxService.syncDropboxFiles() == true) {
-          await fetchAllFiles();
-        } else {
-          SharedPref.storeUserAuthorization(false);
-          setTotalDownloading(name: null);
-          getServices();
-          // showSyncError();
-        }
+  syncDropboxFilesFromApis(bool result) async {
+    if (result == true) {
+      // Sync Files from dropbox
+      if (await dropboxService.syncDropboxFiles() == true) {
+        await fetchAllFiles();
       } else {
-        SharedPref.storeUserAuthorization(false);
         setTotalDownloading(name: null);
-        getServices();
-
-        // showAuthorizationError();
       }
-    } catch (e) {
-      handleError(e);
+    } else {
+      debugPrint("Something went wrong");
     }
-  }
-
-  void handleError(e) {
-    SharedPref.storeUserAuthorization(false);
-    setTotalDownloading(name: null);
-    showToast(
-      message: "Something Went Wrong: $e. Please try again later",
-      isError: true,
-    );
-  }
-
-  void showAuthorizationError() {
-    SharedPref.storeUserAuthorization(false);
-    setTotalDownloading(name: null);
-    showToast(
-      message: "Authorization Error: Please authorize with Dropbox",
-      isError: true,
-    );
-  }
-
-  void showSyncError() {
-    SharedPref.storeUserAuthorization(false);
-    setTotalDownloading(name: null);
-    showToast(
-      message: "Error syncing with Dropbox",
-      isError: true,
-    );
   }
 
   List<FileModel> files = [];

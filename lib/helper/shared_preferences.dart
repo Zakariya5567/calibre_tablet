@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:calibre_tablet/models/libraries_path_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/folder_list_model.dart';
@@ -8,6 +6,8 @@ import '../models/folder_list_model.dart';
 class SharedPref {
   static const String _authorized = "authorized";
   static const String _accessToken = "accessToken";
+  static const String _refreshToken = "refreshToken";
+  static const String _authorizationCode = "authorizationCode";
   static const String _localFolderPath = "localFolderPath";
   static const String _firstInstall = "_firstInstall";
   static const String _dropboxLibrariesPath = "_dropboxLibrariesPath";
@@ -36,6 +36,34 @@ class SharedPref {
   static Future<String?> get getAccessToken async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     final value = sharedPreferences.getString(_accessToken);
+    return value;
+  }
+
+  //Refresh Token ==================================
+
+  static Future<void> storeRefreshToken(String? value) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    if (value == null) return;
+    sharedPreferences.setString(_refreshToken, value);
+  }
+
+  static Future<String?> get getRefreshToken async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final value = sharedPreferences.getString(_refreshToken);
+    return value;
+  }
+
+  //Authorization Code ==================================
+
+  static Future<void> storeAuthorization(String? value) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    if (value == null) return;
+    sharedPreferences.setString(_authorizationCode, value);
+  }
+
+  static Future<String?> get getAuthorizationCode async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final value = sharedPreferences.getString(_authorizationCode);
     return value;
   }
 
