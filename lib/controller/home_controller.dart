@@ -23,6 +23,7 @@ class HomeController extends GetxController {
 
   setTotalDownloading({required String? name}) {
     syncName = name;
+    isLoading = true;
     update();
   }
 
