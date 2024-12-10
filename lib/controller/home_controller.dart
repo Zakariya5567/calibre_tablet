@@ -119,72 +119,75 @@ class HomeController extends GetxController {
     totalAuthorsItems = null;
     itemAuthorsName = null;
     authorsProgress = null;
+    isLoading = false;
     update();
   }
 
-  // Future<void> getServices() async {
-  //   Get.to(DropboxAuthScreen());
-  // }
-
-  // First Method to get services from dropbox
+  ///===============================
   Future<void> getServices() async {
-    setErrorSyncResponseProgress();
+    try {
+      setErrorSyncResponseProgress();
 
-    // Allow Phone storage permission to download data
-    bool? isGranted = await requestManageExternalStoragePermission();
-    if (isGranted == false) {
-      showToast(message: "Storage Permission denied", isError: true);
-      return;
-    }
+      // Step 1: Request storage permission
+      if (!await requestManageExternalStoragePermission()) return;
 
-    // Select Folder in Internal storage
-    String? selectedFolder = await selectFolder();
-    if (selectedFolder == null) {
-      showToast(message: "Storage Not Selected", isError: true);
-      return;
-    }
-
-    // Check internet connection
-    final hasInternet = await checkInternet();
-    if (!hasInternet) return;
-
-    // Show Loading  and check user already LoggedIn Or Not.
-    setLoading(true);
-    bool? isAuthorized = await SharedPref.getUserAuthorization;
-
-    // Check if user already loggedIn or Not
-    if (isAuthorized != true) {
-      await Get.to(DropboxAuthScreen());
-      await authenticateWithAccessTokenAndSync();
-    } else {
-      // User Already logged in now proceed Next.
-      await authenticateWithAccessTokenAndSync();
-    }
-  }
-
-  Future<void> authenticateWithAccessTokenAndSync() async {
-    String? accessToken = await SharedPref.getAccessToken;
-    String? refToken = await SharedPref.getRefreshToken;
-    if (accessToken == null) {
-      await getServices();
-    } else if (refToken == null) {
-      bool refResult = await apiServices.refreshToken();
-      syncDropboxFilesFromApis(refResult);
-    } else {
-      syncDropboxFilesFromApis(true);
-    }
-  }
-
-  syncDropboxFilesFromApis(bool result) async {
-    if (result == true) {
-      // Sync Files from dropbox
-      if (await dropboxService.syncDropboxFiles() == true) {
-        await fetchAllFiles();
-      } else {
-        setTotalDownloading(name: null);
+      // Step 2: Select a folder
+      String? selectedFolder = await selectFolder();
+      if (selectedFolder == null) {
+        showToast(message: "Storage Not Selected", isError: true);
+        return;
       }
+
+      // Step 3: Check internet connection
+      if (!await checkInternet()) return;
+
+      // Step 4: Check authorization and sync
+      setLoading(true);
+      if (await SharedPref.getUserAuthorization != true) {
+        // User is not authorized; redirect to login
+        await Get.to(DropboxAuthScreen());
+      }
+
+      await _authenticateAndSync();
+    } catch (e) {
+      debugPrint("Error in getServices: $e");
+      setErrorSyncResponseProgress();
+    } finally {
+      setErrorSyncResponseProgress();
+    }
+  }
+
+  /// Handles authentication and syncing with Dropbox
+  Future<void> _authenticateAndSync() async {
+    setTotalDownloading(name: "Connecting Dropbox...");
+    String? accessToken = await SharedPref.getAccessToken;
+    String? refreshToken = await SharedPref.getRefreshToken;
+
+    if (accessToken == null) {
+      await SharedPref.storeUserAuthorization(false);
+      await getServices(); // Restart the process to re-authenticate
+    } else if (refreshToken == null) {
+      bool refreshResult = await apiServices.refreshToken();
+      await _syncDropboxFiles(refreshResult);
     } else {
-      debugPrint("Something went wrong");
+      await _syncDropboxFiles(true);
+    }
+  }
+
+  /// Syncs files from Dropbox and handles success/error cases
+  Future<void> _syncDropboxFiles(bool isAuthorized) async {
+    if (!isAuthorized) {
+      setErrorSyncResponseProgress();
+      debugPrint("Authorization failed. Unable to sync Dropbox files.");
+      return;
+    }
+
+    bool syncResult = await dropboxService.syncDropboxFiles();
+    if (syncResult) {
+      await fetchAllFiles();
+    } else {
+      setErrorSyncResponseProgress();
+      debugPrint("Dropbox file sync failed.");
     }
   }
 

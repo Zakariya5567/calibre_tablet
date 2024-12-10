@@ -14,6 +14,14 @@ class _DropboxAuthScreenState extends State<DropboxAuthScreen> {
   late final WebViewController _controller;
   ApiServices apiServices = ApiServices();
 
+  bool isLoading = true;
+
+  setLoading(bool value) {
+    setState(() {
+      isLoading = value;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +33,9 @@ class _DropboxAuthScreenState extends State<DropboxAuthScreen> {
         NavigationDelegate(
           onProgress: (int progress) {
             debugPrint("Page loading progress: $progress%");
+            if (progress == 100) {
+              setLoading(false);
+            }
           },
           onPageStarted: (String url) {
             debugPrint("Page started loading: $url");
@@ -74,8 +85,21 @@ class _DropboxAuthScreenState extends State<DropboxAuthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.whitePrimary,
-      body: WebViewWidget(
-        controller: _controller,
+      body: Stack(
+        children: [
+          WebViewWidget(
+            controller: _controller,
+          ),
+          isLoading == false
+              ? SizedBox()
+              : Container(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.blackPrimary,
+                    ),
+                  ),
+                )
+        ],
       ),
     );
   }

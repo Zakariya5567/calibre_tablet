@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:calibre_tablet/controller/home_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 import '../helper/shared_preferences.dart';
 import '../models/base_model.dart';
@@ -20,6 +23,8 @@ class ApiServices {
 
   ExchangeTokenModel exchangeTokenModel = ExchangeTokenModel();
   Future<bool> tokenExchange() async {
+    final homeController = Get.find<HomeController>();
+    homeController.setTotalDownloading(name: "Connecting Dropbox .....");
     DropboxConfig dropboxConfig = await loadDropboxConfig();
     String dropboxClientId = dropboxConfig.clientId;
     String dropboxSecret = dropboxConfig.secret;
@@ -47,33 +52,36 @@ class ApiServices {
         SharedPref.storeRefreshToken(exchangeTokenModel.refreshToken);
         bool result = await refreshToken();
         return result;
-      } else if (response.statusCode == 400 || response.statusCode == 401) {
-        showToast(
-            message: "${response.statusCode} ${response.statusMessage}",
-            isError: true);
+      } else if (response.statusCode == 401) {
         bool result = await refreshToken();
         return result;
       } else {
-        showToast(
-            message: "${response.statusCode} ${response.statusMessage}",
-            isError: true);
+        errorOnAccessToken(
+            response.statusCode(), response.statusMessage, homeController);
         return false;
       }
     } catch (e) {
-      debugPrint(e.toString());
+      errorOnAccessToken(e.toString(), "", homeController);
       return false;
     }
+  }
+
+  errorOnAccessToken(String statusCode, String statusMessage,
+      HomeController homeController) async {
+    await SharedPref.storeUserAuthorization(false);
+    homeController.setErrorSyncResponseProgress();
+    showToast(message: "$statusCode $statusMessage", isError: true);
   }
 
   // ********************** Refresh Token **********************
 
   RefreshTokenModel refreshTokenModel = RefreshTokenModel();
   Future<bool> refreshToken() async {
+    final homeController = Get.find<HomeController>();
     DropboxConfig dropboxConfig = await loadDropboxConfig();
     String dropboxClientId = dropboxConfig.clientId;
     String dropboxSecret = dropboxConfig.secret;
     String? refreshToken = await SharedPref.getRefreshToken;
-    String? accessToken = await SharedPref.getAccessToken;
 
     try {
       final response = await apiRepo.postRequest(
@@ -94,10 +102,13 @@ class ApiServices {
         refreshTokenModel = RefreshTokenModel.fromJson(response.data);
         SharedPref.storeAccessToken(refreshTokenModel.accessToken);
         return true;
-      } else if (response.statusCode == 400 || response.statusCode == 401) {
+      } else if (response.statusCode == 401) {
+        await SharedPref.storeUserAuthorization(false);
         showToast(
             message: "${response.statusCode} ${response.statusMessage}",
             isError: true);
+        homeController.setErrorSyncResponseProgress();
+        homeController.getServices();
         return false;
       } else {
         showToast(
@@ -125,20 +136,20 @@ class ApiServices {
             "include_media_info": false,
             "include_deleted": false,
           },
-          options: Options(headers: {
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'application/json',
-          }));
+          options: Options(
+              receiveTimeout: const Duration(seconds: 30),
+              sendTimeout: const Duration(seconds: 30),
+              headers: {
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (response.statusCode == 200 || response.statusCode == 201) {
         folderListModel = FolderListModel.fromJson(response.data);
         return FolderListResponse(
             success: true, folderListModel: folderListModel, refresh: false);
-      } else if (response.statusCode == 400 || response.statusCode == 401) {
-        showToast(
-            message: "${response.statusCode} ${response.statusMessage}",
-            isError: true);
+      } else if (response.statusCode == 401) {
         return FolderListResponse(
-            success: true, folderListModel: null, refresh: false);
+            success: false, folderListModel: null, refresh: true);
       } else {
         showToast(
             message: "${response.statusCode} ${response.statusMessage}",
@@ -148,6 +159,8 @@ class ApiServices {
       }
     } catch (e) {
       debugPrint(e.toString());
+      showToast(
+          message: "Something went wrong, Try again later", isError: true);
       return FolderListResponse(
           success: false, folderListModel: null, refresh: false);
     }

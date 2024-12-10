@@ -17,73 +17,99 @@ class DropboxService {
   DatabaseHelper db = DatabaseHelper();
   ApiServices apiServices = ApiServices();
 
+  ///======================================
   Future<bool> syncDropboxFiles() async {
     HomeController controller = Get.put(HomeController());
-    controller.setTotalDownloading(name: "Connecting Dropbox .....");
-    try {
-      ///================== First time to get dropbox files ====================///
-      // controller.setTotalDownloading(name: "Syncing libraries");
-      // Start from the app's folder in Dropbox (root folder for 'calTablet')
-      FolderListResponse result = await apiServices
-          .getFolderList(""); // Access the base 'calTablet' directory
-      // Check if the folder listing was successful
-      if (!result.success) {
-        // If Dropbox call fails, disable user authorization and show an error
-        await SharedPref.storeUserAuthorization(false);
-        controller.setErrorSyncResponseProgress();
-        if (result.refresh == true) {
-          bool refresh = await apiServices.refreshToken();
-          if (refresh == true) {
-            await syncDropboxFiles();
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-        return false;
-      } else {
-        List<FolderFilePath>? storedFolder =
-            await SharedPref.getSelectedLibraries();
-        if (storedFolder.isEmpty) {
-          List<Entry>? dropboxFolders = result.folderListModel?.entries;
-          List<FolderFilePath> allFolder = [];
+    controller.setTotalDownloading(name: "Connecting Dropbox...");
 
-          if (dropboxFolders != null) {
-            for (var dropboxFolder in dropboxFolders) {
-              allFolder.add(FolderFilePath(
-                pathDisplay: dropboxFolder.pathDisplay,
-                name: dropboxFolder.name,
-                pathLower: dropboxFolder.pathLower,
-              ));
-            }
-            controller.setTotalDownloading(name: null);
-            List<FolderFilePath>? selectedFolders =
-                await showDialog<List<FolderFilePath>>(
-              context: navKey.currentContext!,
-              builder: (BuildContext context) {
-                return FolderSelectionDialog(folders: allFolder);
-              },
-            );
-            if (selectedFolders != null) {
-              await SharedPref.storeSelectedLibraries(selectedFolders);
-              await syncLibrariesFormDropboxFolder(controller, selectedFolders);
-            }
-          }
-        } else {
-          controller.setTotalDownloading(name: null);
-          await syncLibrariesFormDropboxFolder(controller, storedFolder);
-        }
+    try {
+      // Step 1: Fetch folder list from Dropbox
+      FolderListResponse result = await apiServices.getFolderList("");
+      if (!result.success) {
+        return await _handleDropboxFailure(result, controller);
       }
+
+      // Step 2: Check stored folder libraries
+      List<FolderFilePath>? storedFolders =
+          await SharedPref.getSelectedLibraries();
+      if (storedFolders.isEmpty) {
+        // Step 3: Get folders from Dropbox and prompt user selection
+        List<FolderFilePath>? selectedFolders =
+            await _promptUserToSelectFolders(
+          controller,
+          result.folderListModel?.entries,
+        );
+        if (selectedFolders != null) {
+          await SharedPref.storeSelectedLibraries(selectedFolders);
+          await _syncSelectedFolders(controller, selectedFolders);
+        }
+      } else {
+        // Step 4: Sync stored folders directly
+        await _syncSelectedFolders(controller, storedFolders);
+      }
+
       return true;
     } catch (e) {
-      controller.setTotalDownloading(name: null);
-      controller.setErrorSyncResponseProgress();
-      // Catch and log any errors that occur during the sync process
-      print('Error syncing with Dropbox: $e');
-      // showToast(message: 'Error syncing with Dropbox: $e', isError: true);
-      return false; // Return false if an error occurs
+      // Handle any unexpected errors
+      _handleSyncError(controller, e);
+      return false;
     }
+  }
+
+  /// Handles failures during the Dropbox folder listing step
+  Future<bool> _handleDropboxFailure(
+    FolderListResponse result,
+    HomeController controller,
+  ) async {
+    controller.setErrorSyncResponseProgress();
+    if (result.refresh == true) {
+      controller.setTotalDownloading(name: "Connecting Dropbox...");
+      bool refreshSuccess = await apiServices.refreshToken();
+      if (refreshSuccess) {
+        return await syncDropboxFiles(); // Retry sync after refreshing token
+      }
+    }
+    return false;
+  }
+
+  /// Prompts the user to select folders from the Dropbox list
+  Future<List<FolderFilePath>?> _promptUserToSelectFolders(
+    HomeController controller,
+    List<Entry>? dropboxFolders,
+  ) async {
+    if (dropboxFolders == null || dropboxFolders.isEmpty) return null;
+
+    controller.setTotalDownloading(name: null);
+    List<FolderFilePath> folderOptions = dropboxFolders.map((folder) {
+      return FolderFilePath(
+        pathDisplay: folder.pathDisplay,
+        name: folder.name,
+        pathLower: folder.pathLower,
+      );
+    }).toList();
+
+    return await showDialog<List<FolderFilePath>>(
+      context: navKey.currentContext!,
+      builder: (BuildContext context) {
+        return FolderSelectionDialog(folders: folderOptions);
+      },
+    );
+  }
+
+  /// Syncs the selected Dropbox folders
+  Future<void> _syncSelectedFolders(
+    HomeController controller,
+    List<FolderFilePath> folders,
+  ) async {
+    controller.setTotalDownloading(name: null);
+    await syncLibrariesFormDropboxFolder(controller, folders);
+  }
+
+  /// Handles unexpected sync errors
+  void _handleSyncError(HomeController controller, dynamic error) {
+    controller.setTotalDownloading(name: null);
+    controller.setErrorSyncResponseProgress();
+    debugPrint('Error syncing with Dropbox: $error');
   }
 
   ///=======================================

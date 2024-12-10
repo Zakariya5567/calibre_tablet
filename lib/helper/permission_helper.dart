@@ -3,7 +3,7 @@ import 'package:calibre_tablet/view/widgets/custom_snackbar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
 
-Future<bool?> requestManageExternalStoragePermission() async {
+Future<bool> requestManageExternalStoragePermission() async {
   // Check the permission status
   var status = await Permission.manageExternalStorage.status;
 
