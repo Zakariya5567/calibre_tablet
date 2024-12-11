@@ -78,7 +78,7 @@ class _DropboxAuthScreenState extends State<DropboxAuthScreen> {
         ),
       )
       ..loadRequest(Uri.parse(
-          'https://www.dropbox.com/oauth2/authorize?client_id=pzpv8lytvlnadby&redirect_uri=https://www.dropbox.com/1/oauth2/authorize_submit&token_access_type=offline&response_type=code'));
+          'https://www.dropbox.com/oauth2/authorize?client_id=pzpv8lytvlnadby&redirect_uri=$redirectUri&token_access_type=offline&response_type=code&force_reapprove=true'));
   }
 
   @override

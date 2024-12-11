@@ -16,6 +16,9 @@ import '../models/refresh_token_model.dart';
 import '../view/widgets/custom_snackbar.dart';
 import 'api_repo.dart';
 
+String redirectUri = "https://www.dropbox.com/1/oauth2/authorize_submit";
+
+// 'redirect_uri': 'https://www.dropbox.com/1/oauth2/authorize_submit',
 class ApiServices {
   ApiRepo apiRepo = ApiRepo();
 
@@ -37,7 +40,7 @@ class ApiServices {
           'grant_type': 'authorization_code',
           'client_id': dropboxClientId,
           'client_secret': dropboxSecret,
-          'redirect_uri': 'https://www.dropbox.com/1/oauth2/authorize_submit',
+          'redirect_uri': redirectUri,
         },
         options: Options(
           headers: {
