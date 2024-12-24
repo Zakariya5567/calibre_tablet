@@ -34,8 +34,7 @@ class DropboxService {
           await SharedPref.getSelectedLibraries();
       if (storedFolders.isEmpty) {
         // Step 3: Get folders from Dropbox and prompt user selection
-        List<FolderFilePath>? selectedFolders =
-            await _promptUserToSelectFolders(
+        List<FolderFilePath>? selectedFolders = await promptUserToSelectFolders(
           controller,
           result.folderListModel?.entries,
         );
@@ -73,7 +72,7 @@ class DropboxService {
   }
 
   /// Prompts the user to select folders from the Dropbox list
-  Future<List<FolderFilePath>?> _promptUserToSelectFolders(
+  Future<List<FolderFilePath>?> promptUserToSelectFolders(
     HomeController controller,
     List<Entry>? dropboxFolders,
   ) async {
@@ -160,7 +159,7 @@ class DropboxService {
       return true;
     } catch (e) {
       print('Error syncing with Dropbox: $e');
-      showToast(message: 'Error syncing with Dropbox: $e', isError: true);
+      // showToast(message: 'Error syncing with Dropbox: $e', isError: true);
       return false;
     }
   }

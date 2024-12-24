@@ -74,7 +74,7 @@ class _MainScreenState extends State<MainScreen> {
                       children: [
                         IconButton(
                             icon: const Icon(Icons.sync),
-                            onPressed: () {
+                            onPressed: () async {
                               if (controller.isLoading == true) {
                                 showToast(
                                     message:

@@ -73,7 +73,7 @@ class ApiServices {
       HomeController homeController) async {
     await SharedPref.storeUserAuthorization(false);
     homeController.setErrorSyncResponseProgress();
-    showToast(message: "$statusCode $statusMessage", isError: true);
+    // showToast(message: "$statusCode $statusMessage", isError: true);
   }
 
   // ********************** Refresh Token **********************
@@ -107,16 +107,16 @@ class ApiServices {
         return true;
       } else if (response.statusCode == 401) {
         await SharedPref.storeUserAuthorization(false);
-        showToast(
-            message: "${response.statusCode} ${response.statusMessage}",
-            isError: true);
+        // showToast(
+        //     message: "${response.statusCode} ${response.statusMessage}",
+        //     isError: true);
         homeController.setErrorSyncResponseProgress();
         homeController.getServices();
         return false;
       } else {
-        showToast(
-            message: "${response.statusCode} ${response.statusMessage}",
-            isError: true);
+        // showToast(
+        //     message: "${response.statusCode} ${response.statusMessage}",
+        //     isError: true);
         return false;
       }
     } catch (e) {
@@ -138,6 +138,7 @@ class ApiServices {
             "recursive": false,
             "include_media_info": false,
             "include_deleted": false,
+            "limit": 2000
           },
           options: Options(
               receiveTimeout: const Duration(seconds: 30),
@@ -154,16 +155,16 @@ class ApiServices {
         return FolderListResponse(
             success: false, folderListModel: null, refresh: true);
       } else {
-        showToast(
-            message: "${response.statusCode} ${response.statusMessage}",
-            isError: true);
+        // showToast(
+        //     message: "${response.statusCode} ${response.statusMessage}",
+        //     isError: true);
         return FolderListResponse(
             success: true, folderListModel: null, refresh: false);
       }
     } catch (e) {
       debugPrint(e.toString());
-      showToast(
-          message: "Something went wrong, Try again later", isError: true);
+      // showToast(
+      //     message: "Something went wrong, Try again later", isError: true);
       return FolderListResponse(
           success: false, folderListModel: null, refresh: false);
     }
