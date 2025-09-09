@@ -12,6 +12,10 @@ class SharedPref {
   static const String _firstInstall = "_firstInstall";
   static const String _dropboxLibrariesPath = "_dropboxLibrariesPath";
 
+  static const String _sortStatus = "_sortStatus";
+  static const String _filterStatus = "_filterStatus";
+  static const String _orderByStatus = "_orderByStatus";
+
   //User Authorization ==================================
 
   static Future<void> storeUserAuthorization(bool value) async {
@@ -123,4 +127,39 @@ class SharedPref {
     final value = sharedPreferences.getBool(_firstInstall);
     return value;
   }
+
+  //Sort Status ==================================
+  static Future<void> storeSortStatus(String value) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setString(_sortStatus, value);
+  }
+  static Future<String?> get getSortStatus async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final value = sharedPreferences.getString(_sortStatus);
+    return value;
+  }
+
+  //Filter Status ==================================
+  static Future<void> storeFilterStatus(String value) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setString(_filterStatus, value);
+  }
+  static Future<String?> get getFilterStatus async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final value = sharedPreferences.getString(_filterStatus);
+    return value;
+  }
+
+  //Order By Status ==================================
+  static Future<void> storeOrderByStatus(String value) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setString(_orderByStatus, value);
+  }
+  static Future<String?> get getOrderByStatus async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final value = sharedPreferences.getString(_orderByStatus);
+    return value;
+  }
+
+
 }

@@ -66,22 +66,25 @@ class HomeController extends GetxController {
   }
 
   // Set the selected filter (read/unread/all)
-  void setSelectedFilter(String filter) {
+  void setSelectedFilter(String filter) async {
     selectedFiler = filter;
+    await SharedPref.storeFilterStatus(filter);
     update();
     fetchAllFiles();
   }
 
   // Set the selected sort option (ascending/descending)
-  void seOrderBy(String sort) {
+  void seOrderBy(String sort) async{
     selectedOrderBy = sort;
+    await SharedPref.storeOrderByStatus(sort);
     update();
     fetchAllFiles();
   }
 
   // Set the selected sort option (title/author/dates)
-  void setSelectedSort(String sort) {
+  void setSelectedSort(String sort) async{
     selectedSort = sort;
+    await SharedPref.storeSortStatus(sort);
     update();
     fetchAllFiles();
   }
@@ -97,10 +100,15 @@ class HomeController extends GetxController {
     update();
   }
 
-  clearData() {
-    selectedFiler = "all";
-    selectedSort = "title";
-    selectedOrderBy = "ascending";
+  clearData() async {
+
+    String filter = await SharedPref.getFilterStatus ?? "all";
+    String sort = await SharedPref.getSortStatus ?? "title";
+    String orderBy = await SharedPref.getOrderByStatus ?? "ascending";
+
+    selectedFiler = filter;
+    selectedSort = sort;
+    selectedOrderBy = orderBy;
     searchController.clear();
     update();
   }
