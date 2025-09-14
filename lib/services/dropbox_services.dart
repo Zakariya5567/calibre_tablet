@@ -13,6 +13,14 @@ import '../helper/shared_preferences.dart';
 import 'package:get/get.dart';
 import '../view/widgets/folder_selection_dialog.dart';
 
+
+// Example keys
+//{}
+//   "dropbox_clientId": "re47x4kv9ccuua8",
+//   "dropbox_key": "vw3cy8vgmvxeukz", 
+//   "dropbox_secret": "re47x4kv9ccuua8",
+//   "access_token": ""
+//}
 class DropboxService {
   DatabaseHelper db = DatabaseHelper();
   ApiServices apiServices = ApiServices();
