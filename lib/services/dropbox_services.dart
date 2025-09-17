@@ -15,12 +15,13 @@ import '../view/widgets/folder_selection_dialog.dart';
 
 
 // Example keys
-//{}
-//   "dropbox_clientId": "re47x4kv9ccuua8",
-//   "dropbox_key": "vw3cy8vgmvxeukz", 
-//   "dropbox_secret": "re47x4kv9ccuua8",
-//   "access_token": ""
-//}
+// {
+// "dropbox_clientId": "pzpv8lytvlnadby",
+// "dropbox_key": "pzpv8lytvlnadby",
+// "dropbox_secret": "f2sl9j7lbyz68dh",
+// "access_token": ""
+// }
+
 class DropboxService {
   DatabaseHelper db = DatabaseHelper();
   ApiServices apiServices = ApiServices();
