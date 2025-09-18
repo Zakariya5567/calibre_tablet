@@ -46,8 +46,8 @@ class _MainScreenState extends State<MainScreen> {
 
   initializeData() async {
     bool? firstInstall = await SharedPref.getFirstInstall;
-    homeController.clearData();
-    homeController.fetchAllFiles();
+    await homeController.clearData();
+    await homeController.fetchAllFiles();
     if (firstInstall != true) {
       await SharedPref.storeFirstInstall(true);
       homeController.getServices();
