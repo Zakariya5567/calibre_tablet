@@ -17,10 +17,11 @@ sortBottomSheet() {
   return showModalBottomSheet(
     backgroundColor: Colors.transparent,
     context: navKey.currentContext!,
+    isScrollControlled: true,
     builder: (BuildContext context) {
       return GetBuilder<HomeController>(builder: (controller) {
         return Container(
-          height: 1500.h,
+            height: 1200.h,
           decoration: const BoxDecoration(
             color: AppColor.blackSecondary,
             borderRadius: BorderRadius.only(
@@ -117,6 +118,7 @@ sortBottomSheet() {
                   },
                   isActive: controller.selectedSort == "downloadDate",
                 ),
+
               ],
             ).paddingSymmetric(horizontal: 40.w, vertical: 40.h),
           ),
